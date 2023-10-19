@@ -1,11 +1,24 @@
 import { httpApiMock } from '@app/api/mocks/http.api.mock';
 import { AuthData } from '@app/api/auth.api';
 import { initValues } from '@app/components/auth/LoginForm/LoginForm';
+import Account from '@app/mock-backend/wallets/account.json';
+import Alice from '@app/mock-backend/wallets/alice.json';
+import Bob from '@app/mock-backend/wallets/bob.json';
+import Test from '@app/mock-backend/wallets/test.json';
 
 const avatarImg = process.env.REACT_APP_ASSETS_BUCKET + '/avatars/avatar5.webp';
 
+const encryptedWallets = [Account, Alice, Bob, Test].reduce((previousValue, currentValue) => {
+  previousValue[currentValue.email] = currentValue.encryptedWallet;
+  return previousValue;
+}, {[initValues.email]: initValues.password});
+
 httpApiMock.onPost('login').reply((config) => {
   const data: AuthData = JSON.parse(config.data || '');
+  const encryptedWallet = encryptedWallets[data.email];
+  if(!encryptedWallet) return [401, { message: 'Invalid Credentials' }];
+
+  console.log(data);
   if (data.password === initValues.password) {
     return [
       200,
