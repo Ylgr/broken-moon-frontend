@@ -861,7 +861,7 @@
   },
   "nft": {
     "yourBalance": "Dein Kontostand",
-    "topUpBalance": "Guthaben aufladen",
+    "transfer": "Guthaben aufladen",
     "totalEarning": "Gesamtverdienst",
     "status": {
         "sold": "Verkauft",

@@ -59,3 +59,11 @@ export const readEncryptedWallet = (): string | null => {
 }
 
 export const deleteEncryptedWallet = (): void => localStorage.removeItem('encryptedWallet');
+
+export const persistSmartWalletAddress = (address: string): void => {
+    localStorage.setItem('smartWalletAddress', address);
+}
+
+export const readSmartWalletAddress = (): string | null => {
+    return localStorage.getItem('smartWalletAddress');
+}

@@ -29,7 +29,7 @@ export const SubtitleBalanceText = styled(Typography.Text)`
   color: var(--text-nft-light-color);
 `;
 
-export const TopUpButton = styled(Button)`
+export const TransferButton = styled(Button)`
   ${(props) =>
     props.type === 'ghost' &&
     css`

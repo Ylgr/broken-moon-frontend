@@ -554,7 +554,9 @@
       "success": "Success",
       "successTitle": "This is a success message",
       "warning": "Warning",
-      "warningTitle": "This is a warning message"
+      "warningTitle": "This is a warning message",
+      "token": "Token",
+      "toAddress": "To address"
   },
   "newPassword": {
       "description": "Your new password must be different from previous password",
@@ -861,7 +863,7 @@
   },
   "nft": {
       "yourBalance": "Your Balance",
-      "topUpBalance": "Top Up Balance",
+      "transfer": "Transfer",
       "totalEarning": "Total Earning",
       "status": {
           "sold": "Sold",

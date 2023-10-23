@@ -22,7 +22,7 @@ export const getCurrencyPrice = (
       return isIcon ? `$${price}` : `${price} USD`;
     }
 
-    case 'BTC': {
+    case 'BTC' || 'BM': {
       return isIcon ? (
         <Row align="middle" gutter={[8, 8]}>
           <Col style={{ display: 'flex' }}>

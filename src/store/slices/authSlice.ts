@@ -13,14 +13,15 @@ import {
 } from '@app/api/auth.api';
 import { setUser } from '@app/store/slices/userSlice';
 import {
-  deleteToken,
-  deleteUser,
-  persistEncryptedWallet,
-  persistToken,
-  readToken
+    deleteToken,
+    deleteUser,
+    persistEncryptedWallet, persistSmartWalletAddress,
+    persistToken,
+    readToken
 } from '@app/services/localStorage.service';
 import {ethers} from "ethers";
-import {setEncryptedWallet, setLocalWallet} from "@app/store/slices/walletSlice";
+import {setEncryptedWallet, setLocalWallet, setSmartWalletAddress} from "@app/store/slices/walletSlice";
+import {getSmartWalletAddress} from "@app/components/contract/smartWallet";
 
 export interface AuthSlice {
   token: string | null;
@@ -31,7 +32,7 @@ const initialState: AuthSlice = {
 };
 
 export const doLogin = createAsyncThunk('auth/doLogin', async (loginPayload: LoginRequest, { dispatch }) =>
-  login(loginPayload).then((res) => {
+  login(loginPayload).then(async (res) => {
     console.log(res);
     dispatch(setUser(res.user));
     persistToken(res.token);
@@ -39,6 +40,10 @@ export const doLogin = createAsyncThunk('auth/doLogin', async (loginPayload: Log
     persistEncryptedWallet(res.wallet);
     const wallet = ethers.Wallet.fromEncryptedJsonSync(res.wallet, loginPayload.password);
     dispatch(setLocalWallet(wallet));
+    const localWalletAddress = wallet.address;
+    const smartWalletAddress  = await getSmartWalletAddress(localWalletAddress)
+    dispatch(setSmartWalletAddress(smartWalletAddress));
+    persistSmartWalletAddress(smartWalletAddress);
     return res.token;
   }),
 );
