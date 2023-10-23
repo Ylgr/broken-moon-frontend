@@ -50,7 +50,6 @@ export const TwoFactorAuth: React.FC = () => {
       notificationController.success({ message: t('common.success') });
 
       const newUser = { ...user, [selectedOption]: { ...user[selectedOption], verified: true } };
-
       dispatch(setUser(newUser));
     }
   }, [dispatch, selectedOption, t, user]);

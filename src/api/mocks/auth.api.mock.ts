@@ -1,25 +1,16 @@
 import { httpApiMock } from '@app/api/mocks/http.api.mock';
 import { AuthData } from '@app/api/auth.api';
 import { initValues } from '@app/components/auth/LoginForm/LoginForm';
-import Account from '@app/mock-backend/wallets/account.json';
-import Alice from '@app/mock-backend/wallets/alice.json';
-import Bob from '@app/mock-backend/wallets/bob.json';
-import Test from '@app/mock-backend/wallets/test.json';
+import Wallets from './wallets.json';
 
 const avatarImg = process.env.REACT_APP_ASSETS_BUCKET + '/avatars/avatar5.webp';
-
-const encryptedWallets = [Account, Alice, Bob, Test].reduce((previousValue, currentValue) => {
-  previousValue[currentValue.email] = currentValue.encryptedWallet;
-  return previousValue;
-}, {[initValues.email]: initValues.password});
-
 httpApiMock.onPost('login').reply((config) => {
   const data: AuthData = JSON.parse(config.data || '');
-  const encryptedWallet = encryptedWallets[data.email];
+  // @ts-ignore
+  const encryptedWallet = Wallets[data.email];
   if(!encryptedWallet) return [401, { message: 'Invalid Credentials' }];
-
   console.log(data);
-  if (data.password === initValues.password) {
+  // if (data.password === initValues.password) {
     return [
       200,
       {
@@ -52,9 +43,10 @@ httpApiMock.onPost('login').reply((config) => {
             linkedin: 'https://linkedin.com/company/altence',
           },
         },
+        wallet: encryptedWallet
       },
     ];
-  } else return [401, { message: 'Invalid Credentials' }];
+  // } else return [401, { message: 'Invalid Credentials' }];
 });
 
 httpApiMock.onPost('signUp').reply(200);

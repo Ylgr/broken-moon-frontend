@@ -12,7 +12,7 @@ const initialState: UserState = {
 
 export const setUser = createAction<PrepareAction<UserModel>>('user/setUser', (newUser) => {
   persistUser(newUser);
-
+  console.log('newUser in state:', newUser);
   return {
     payload: newUser,
   };

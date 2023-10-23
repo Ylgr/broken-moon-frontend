@@ -12,7 +12,15 @@ import {
   setNewPassword,
 } from '@app/api/auth.api';
 import { setUser } from '@app/store/slices/userSlice';
-import { deleteToken, deleteUser, persistToken, readToken } from '@app/services/localStorage.service';
+import {
+  deleteToken,
+  deleteUser,
+  persistEncryptedWallet,
+  persistToken,
+  readToken
+} from '@app/services/localStorage.service';
+import {ethers} from "ethers";
+import {setEncryptedWallet, setLocalWallet} from "@app/store/slices/walletSlice";
 
 export interface AuthSlice {
   token: string | null;
@@ -24,9 +32,13 @@ const initialState: AuthSlice = {
 
 export const doLogin = createAsyncThunk('auth/doLogin', async (loginPayload: LoginRequest, { dispatch }) =>
   login(loginPayload).then((res) => {
+    console.log(res);
     dispatch(setUser(res.user));
     persistToken(res.token);
-
+    dispatch(setEncryptedWallet(res.wallet));
+    persistEncryptedWallet(res.wallet);
+    const wallet = ethers.Wallet.fromEncryptedJsonSync(res.wallet, loginPayload.password);
+    dispatch(setLocalWallet(wallet));
     return res.token;
   }),
 );

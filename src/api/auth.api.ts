@@ -34,6 +34,7 @@ export interface LoginRequest {
 export interface LoginResponse {
   token: string;
   user: UserModel;
+  wallet: string;
 }
 
 export const login = (loginPayload: LoginRequest): Promise<LoginResponse> =>

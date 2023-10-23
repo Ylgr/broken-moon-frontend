@@ -44,9 +44,18 @@ export const persistUser = (user: UserModel): void => {
 
 export const readUser = (): UserModel | null => {
   const userStr = localStorage.getItem('user');
-
   return userStr ? JSON.parse(userStr) : testUser;
 };
 
 export const deleteToken = (): void => localStorage.removeItem('accessToken');
 export const deleteUser = (): void => localStorage.removeItem('user');
+
+export const persistEncryptedWallet = (wallet: string): void => {
+  localStorage.setItem('encryptedWallet', wallet);
+}
+
+export const readEncryptedWallet = (): string | null => {
+    return localStorage.getItem('encryptedWallet');
+}
+
+export const deleteEncryptedWallet = (): void => localStorage.removeItem('encryptedWallet');
