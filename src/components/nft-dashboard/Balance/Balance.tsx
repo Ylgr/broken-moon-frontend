@@ -6,7 +6,7 @@ import { useAppSelector } from '@app/hooks/reduxHooks';
 import { formatNumberWithCommas, getCurrencyPrice } from '@app/utils/utils';
 import { getBalance } from '@app/api/earnings.api';
 import * as S from './Balance.styles';
-import {getBmBalance, getSmartWalletAddress} from "@app/components/contract/smartWallet";
+import {bmToken, getBmBalance, getSmartWalletAddress} from "@app/components/contract/smartWallet";
 import {P1} from "@app/components/common/typography/P1/P1";
 import {Modal} from "@app/components/common/Modal/Modal";
 import {Button} from "@app/components/common/buttons/Button/Button";
@@ -14,7 +14,7 @@ import {DownOutlined} from "@ant-design/icons";
 import {Dropdown} from "@app/components/common/Dropdown/Dropdown";
 import {Menu, MenuItem} from "@app/components/common/Menu/Menu";
 import {Input} from "@app/components/common/inputs/Input/Input";
-
+import {ethers} from "ethers";
 export const Balance: React.FC = () => {
   const [balance, setBalance] = useState({
     usd_balance: 0,
@@ -22,7 +22,8 @@ export const Balance: React.FC = () => {
     btc_balance: 0,
   });
   const [isTransferModalVisible, setIsTransferModalVisible] = useState<boolean>(false);
-
+  const [transferToken, setTransferToken] = useState<string>('0x2ef8aa35647530EE276fCBCE2E639F86D8B7F1EB');
+  const [transferAddress, setTransferAddress] = useState<string>('0xeaBcd21B75349c59a4177E10ed17FBf2955fE697');
   const userId = useAppSelector((state) => state.user.user?.id);
   const { theme } = useAppSelector((state) => state.theme);
   const smartWalletAddress = useAppSelector((state) => state.wallet.smartWalletAddress as string);
@@ -37,23 +38,31 @@ export const Balance: React.FC = () => {
 
   const { t } = useTranslation();
 
+  const createTransferOp = async () => {
+    const data = [
+        bmToken.interface.encodeFunctionData('transfer', [transferAddress, ethers.utils.parseEther('1')])
+    ]
+    const targets = [bmToken.address]
+    const value = [0]
+  }
+
   const positionMenu = (
       <Menu>
-        <MenuItem>
-          <Button type="link" target="_blank" rel="noopener noreferrer">
-            {t('dropdowns.firstItem')}
-          </Button>
-        </MenuItem>
-        <MenuItem>
-          <Button type="link" target="_blank" rel="noopener noreferrer">
-            {t('dropdowns.secondItem')}
-          </Button>
-        </MenuItem>
-        <MenuItem>
-          <Button type="link" target="_blank" rel="noopener noreferrer">
-            {t('dropdowns.thirdItem')}
-          </Button>
-        </MenuItem>
+        {/*<MenuItem>*/}
+        {/*  <Button type="link" target="_blank" rel="noopener noreferrer">*/}
+        {/*    {t('dropdowns.firstItem')}*/}
+        {/*  </Button>*/}
+        {/*</MenuItem>*/}
+        {/*<MenuItem>*/}
+        {/*  <Button type="link" target="_blank" rel="noopener noreferrer">*/}
+        {/*    {t('dropdowns.secondItem')}*/}
+        {/*  </Button>*/}
+        {/*</MenuItem>*/}
+        {/*<MenuItem>*/}
+        {/*  <Button type="link" target="_blank" rel="noopener noreferrer">*/}
+        {/*    {t('dropdowns.thirdItem')}*/}
+        {/*  </Button>*/}
+        {/*</MenuItem>*/}
       </Menu>
   );
 
@@ -101,17 +110,20 @@ export const Balance: React.FC = () => {
             <Modal
                 title={t('nft.transfer')}
                 visible={isTransferModalVisible}
-                onOk={() => setIsTransferModalVisible(false)}
+                onOk={() => {
+                  createTransferOp()
+                  setIsTransferModalVisible(false)
+                }}
                 onCancel={() => setIsTransferModalVisible(false)}
             >
               <p>{t('modals.token')}</p>
               <Dropdown overlay={positionMenu} trigger={['click']}>
                 <Button onClick={(e) => e.preventDefault()}>
-                    {t('dropdowns.clickMe')} <DownOutlined />
+                  Broken Moon <DownOutlined />
                 </Button>
               </Dropdown>
               <p>{t('modals.toAddress')}</p>
-                <Input value={"0x1234"}/>
+                <Input value={transferAddress}/>
             </Modal>
           </Row>
         </NFTCard>
