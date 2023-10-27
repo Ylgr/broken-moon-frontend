@@ -6,7 +6,13 @@ import { useAppSelector } from '@app/hooks/reduxHooks';
 import { formatNumberWithCommas, getCurrencyPrice } from '@app/utils/utils';
 import { getBalance } from '@app/api/earnings.api';
 import * as S from './Balance.styles';
-import {bmToken, getBmBalance, getSmartWalletAddress} from "@app/components/contract/smartWallet";
+import {
+  bicAccountFactory,
+  bmToken, entryPoint,
+  getBmBalance,
+  getSmartWalletAddress,
+  provider
+} from "@app/components/contract/smartWallet";
 import {P1} from "@app/components/common/typography/P1/P1";
 import {Modal} from "@app/components/common/Modal/Modal";
 import {Button} from "@app/components/common/buttons/Button/Button";
@@ -15,6 +21,7 @@ import {Dropdown} from "@app/components/common/Dropdown/Dropdown";
 import {Menu, MenuItem} from "@app/components/common/Menu/Menu";
 import {Input} from "@app/components/common/inputs/Input/Input";
 import {ethers} from "ethers";
+import BmToken from "@app/components/contract/abi/BmToken.json";
 export const Balance: React.FC = () => {
   const [balance, setBalance] = useState({
     usd_balance: 0,
@@ -27,7 +34,8 @@ export const Balance: React.FC = () => {
   const userId = useAppSelector((state) => state.user.user?.id);
   const { theme } = useAppSelector((state) => state.theme);
   const smartWalletAddress = useAppSelector((state) => state.wallet.smartWalletAddress as string);
-
+  const localWallet = useAppSelector((state) => state.wallet.localWallet) as ethers.Wallet;
+  const smartWalletContract = new ethers.Contract("smartWalletAddress", BmToken, provider);
   useEffect(() => {
     console.log('smartWalletAddress', smartWalletAddress);
   getBmBalance(smartWalletAddress).then((bmBalance) => {
@@ -44,6 +52,27 @@ export const Balance: React.FC = () => {
     ]
     const targets = [bmToken.address]
     const value = [0]
+    const callDataForEntrypoint = bmToken.interface.encodeFunctionData('execute', [targets, value, data])
+    const initCode = ethers.utils.solidityPack(
+        ['bytes', 'bytes'],
+        [ethers.utils.solidityPack(['address'], [bicAccountFactory.address]), callDataForEntrypoint]
+    )
+    const op = [
+        smartWalletAddress,
+        await smartWalletContract.nonce(),
+        initCode,
+      callDataForEntrypoint,
+        500000,
+        500000,
+        500000,
+        0,
+        0,
+        "0x0",
+        "0x0"
+    ]
+    const opHash = entryPoint.getOperationHash(op)
+    const signature = await localWallet.signMessage(ethers.utils.arrayify(opHash))
+    console.log('signature: ', signature);
   }
 
   const positionMenu = (
