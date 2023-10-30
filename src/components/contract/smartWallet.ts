@@ -1,5 +1,6 @@
 import {ethers} from "ethers";
 import BicAccountFactory from "./abi/BicAccountFactory.json";
+import BicAccount from "./abi/BicAccount.json";
 import BmToken from "./abi/BmToken.json";
 import EntryPoint from "./abi/EntryPoint.json";
 
@@ -19,3 +20,5 @@ export const getSmartWalletAddress = async (address: string): Promise<string> =>
 export const getBmBalance = async (address: string): Promise<string> => {
     return await bmToken.balanceOf(address);
 }
+
+export const bicAccountAbi = BicAccount;

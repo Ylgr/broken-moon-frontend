@@ -7,6 +7,7 @@ import { formatNumberWithCommas, getCurrencyPrice } from '@app/utils/utils';
 import { getBalance } from '@app/api/earnings.api';
 import * as S from './Balance.styles';
 import {
+  bicAccountAbi,
   bicAccountFactory,
   bmToken, entryPoint,
   getBmBalance,
@@ -34,8 +35,8 @@ export const Balance: React.FC = () => {
   const userId = useAppSelector((state) => state.user.user?.id);
   const { theme } = useAppSelector((state) => state.theme);
   const smartWalletAddress = useAppSelector((state) => state.wallet.smartWalletAddress as string);
-  const localWallet = useAppSelector((state) => state.wallet.localWallet) as ethers.Wallet;
-  const smartWalletContract = new ethers.Contract("smartWalletAddress", BmToken, provider);
+  // const localWallet = useAppSelector((state) => state.wallet.localWallet) as ethers.Wallet;
+  const encryptedWallet = useAppSelector((state) => state.wallet.encryptedWallet);
   useEffect(() => {
     console.log('smartWalletAddress', smartWalletAddress);
   getBmBalance(smartWalletAddress).then((bmBalance) => {
@@ -47,19 +48,23 @@ export const Balance: React.FC = () => {
   const { t } = useTranslation();
 
   const createTransferOp = async () => {
+    const bicAccount = new ethers.Contract(smartWalletAddress, bicAccountAbi, provider);
     const data = [
         bmToken.interface.encodeFunctionData('transfer', [transferAddress, ethers.utils.parseEther('1')])
     ]
     const targets = [bmToken.address]
     const value = [0]
-    const callDataForEntrypoint = bmToken.interface.encodeFunctionData('execute', [targets, value, data])
+    const callDataForEntrypoint = bicAccount.interface.encodeFunctionData('executeBatch', [targets, value, data])
+    console.log(1);
     const initCode = ethers.utils.solidityPack(
         ['bytes', 'bytes'],
         [ethers.utils.solidityPack(['address'], [bicAccountFactory.address]), callDataForEntrypoint]
     )
+    console.log(2);
+
     const op = [
         smartWalletAddress,
-        await smartWalletContract.nonce(),
+        await bicAccount.getNonce(),
         initCode,
       callDataForEntrypoint,
         500000,
@@ -67,11 +72,14 @@ export const Balance: React.FC = () => {
         500000,
         0,
         0,
-        "0x0",
-        "0x0"
+        0,
+        0
     ]
-    const opHash = entryPoint.getOperationHash(op)
-    const signature = await localWallet.signMessage(ethers.utils.arrayify(opHash))
+    const opHash = await entryPoint.getUserOpHash(op)
+    console.log('opHash: ', opHash);
+    const wallet = ethers.Wallet.fromEncryptedJsonSync(encryptedWallet as string, "test");
+
+    const signature = await wallet.signMessage(ethers.utils.arrayify(opHash))
     console.log('signature: ', signature);
   }
 
