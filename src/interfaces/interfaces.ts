@@ -26,6 +26,6 @@ export type Severity = 'success' | 'error' | 'info' | 'warning';
 
 export type TwoFactorAuthOption = 'email' | 'phone';
 
-export type CurrencyType = 'USD' | 'ETH' | 'BTC' | 'BM';
+export type CurrencyType = 'USD' | 'ETH' | 'BTC' | 'BM' | 'BNB';
 
 export type ActivityStatusType = 'sold' | 'booked' | 'added';

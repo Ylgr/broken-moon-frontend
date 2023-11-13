@@ -2,16 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { Col, Row } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { NFTCard } from '@app/components/nft-dashboard/common/NFTCard/NFTCard';
-import { useAppSelector } from '@app/hooks/reduxHooks';
+import {useAppDispatch, useAppSelector} from '@app/hooks/reduxHooks';
 import { formatNumberWithCommas, getCurrencyPrice } from '@app/utils/utils';
 import { getBalance } from '@app/api/earnings.api';
 import * as S from './Balance.styles';
 import {
+  bicAccount,
   bicAccountAbi,
   bicAccountFactory,
   bmToken, entryPoint,
   getBmBalance,
-  getSmartWalletAddress,
+  getSmartWalletAddress, getTokenBalance,
   provider
 } from "@app/components/contract/smartWallet";
 import {P1} from "@app/components/common/typography/P1/P1";
@@ -23,11 +24,12 @@ import {Menu, MenuItem} from "@app/components/common/Menu/Menu";
 import {Input} from "@app/components/common/inputs/Input/Input";
 import {ethers} from "ethers";
 import BmToken from "@app/components/contract/abi/BmToken.json";
+import {setIsPayAsToken, setOps} from "@app/store/slices/walletSlice";
+import {Switch} from "@app/components/common/Switch/Switch";
 export const Balance: React.FC = () => {
   const [balance, setBalance] = useState({
-    usd_balance: 0,
-    eth_balance: 0,
-    btc_balance: 0,
+    bnb_balance: ethers.BigNumber.from(0),
+    bm_balance: ethers.BigNumber.from(0),
   });
   const [isTransferModalVisible, setIsTransferModalVisible] = useState<boolean>(false);
   const [transferToken, setTransferToken] = useState<string>('0x2ef8aa35647530EE276fCBCE2E639F86D8B7F1EB');
@@ -39,48 +41,24 @@ export const Balance: React.FC = () => {
   const encryptedWallet = useAppSelector((state) => state.wallet.encryptedWallet);
   useEffect(() => {
     console.log('smartWalletAddress', smartWalletAddress);
-  getBmBalance(smartWalletAddress).then((bmBalance) => {
-    console.log('bmBalance', bmBalance);
+    smartWalletAddress && getTokenBalance(smartWalletAddress).then((balance) => {
+    setBalance(balance);
   })
-    userId && getBalance(userId).then((res) => setBalance(res));
   }, [userId]);
 
   const { t } = useTranslation();
+  const dispatch = useAppDispatch();
+
+  // async function createOp(smartWalletAddress: string, initCode: string,  initCallData: string, paymasterAndData: string = "0x"): Promise<any> {
+  //   const smartWallet = bicAccount(smartWalletAddress);
+  //
+  // }
 
   const createTransferOp = async () => {
-    const bicAccount = new ethers.Contract(smartWalletAddress, bicAccountAbi, provider);
-    const data = [
-        bmToken.interface.encodeFunctionData('transfer', [transferAddress, ethers.utils.parseEther('1')])
-    ]
-    const targets = [bmToken.address]
-    const value = [0]
-    const callDataForEntrypoint = bicAccount.interface.encodeFunctionData('executeBatch', [targets, value, data])
-    console.log(1);
-    const initCode = ethers.utils.solidityPack(
-        ['bytes', 'bytes'],
-        [ethers.utils.solidityPack(['address'], [bicAccountFactory.address]), callDataForEntrypoint]
-    )
-    console.log(2);
 
-    const op = [
-        smartWalletAddress,
-        await bicAccount.getNonce(),
-        initCode,
-      callDataForEntrypoint,
-        500000,
-        500000,
-        500000,
-        0,
-        0,
-        0,
-        0
-    ]
-    const opHash = await entryPoint.getUserOpHash(op)
-    console.log('opHash: ', opHash);
-    const wallet = ethers.Wallet.fromEncryptedJsonSync(encryptedWallet as string, "test");
 
-    const signature = await wallet.signMessage(ethers.utils.arrayify(opHash))
-    console.log('signature: ', signature);
+    dispatch(setIsPayAsToken(false));
+    dispatch(setOps([]));
   }
 
   const positionMenu = (
@@ -117,28 +95,38 @@ export const Balance: React.FC = () => {
                 <Col span={24}>
                   <P1>{smartWalletAddress}</P1>
                   <S.TitleBalanceText level={3}>
-                    {getCurrencyPrice(formatNumberWithCommas(balance.usd_balance), 'BM')}
+                    {getCurrencyPrice(ethers.utils.formatEther(balance.bnb_balance), 'BNB')}
                   </S.TitleBalanceText>
                 </Col>
 
-                {/*<Col span={24}>*/}
-                {/*  <Row gutter={[55, 10]} wrap={false}>*/}
-                {/*    <Col>*/}
-                {/*      <S.SubtitleBalanceText>*/}
-                {/*        {getCurrencyPrice(formatNumberWithCommas(balance.eth_balance), 'ETH')}*/}
-                {/*      </S.SubtitleBalanceText>*/}
-                {/*    </Col>*/}
+                <Col span={24}>
+                  <Row gutter={[55, 10]} wrap={false}>
+                    <Col>
+                      <S.SubtitleBalanceText>
+                        {getCurrencyPrice(ethers.utils.formatEther(balance.bm_balance), 'BM')}
+                      </S.SubtitleBalanceText>
+                    </Col>
 
                 {/*    <Col>*/}
                 {/*      <S.SubtitleBalanceText>*/}
                 {/*        {getCurrencyPrice(formatNumberWithCommas(balance.btc_balance), 'BTC')}*/}
                 {/*      </S.SubtitleBalanceText>*/}
                 {/*    </Col>*/}
-                {/*  </Row>*/}
-                {/*</Col>*/}
+                  </Row>
+                </Col>
               </Row>
             </Col>
 
+
+            <Col span={24}>
+              <S.TitleText level={2}>Pay transaction fee as:</S.TitleText>
+              <Switch checkedChildren="BIC" unCheckedChildren="BNB" defaultChecked onClick={
+                (checked) => {
+                  dispatch(setIsPayAsToken(checked));
+                }
+              } />
+
+            </Col>
             <Col span={24}>
               <S.TransferButton type={theme === 'dark' ? 'ghost' : 'primary'} onClick={() => setIsTransferModalVisible(true)} block>
                 {t('nft.transfer')}

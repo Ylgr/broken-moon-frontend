@@ -6,12 +6,16 @@ export interface WalletState {
     localWallet: ethers.Wallet | null;
     encryptedWallet: string | null;
     smartWalletAddress: string | null;
+    ops: any;
+    isPayAsToken: boolean;
 }
 
 const initialState: WalletState = {
     localWallet: null,
     encryptedWallet: readEncryptedWallet(),
     smartWalletAddress: readSmartWalletAddress(),
+    ops: null,
+    isPayAsToken: false,
 };
 
 export const setLocalWallet = createAction('wallet/setLocalWallet', (localWallet: ethers.Wallet) => {
@@ -32,6 +36,18 @@ export const setSmartWalletAddress = createAction('wallet/setSmartWalletAddress'
     };
 });
 
+export const setOps = createAction('wallet/setOps', (ops: any) => {
+    return {
+        payload: ops,
+    };
+});
+
+export const setIsPayAsToken = createAction('wallet/setIsPayAsToken', (isPayAsToken: boolean) => {
+    return {
+        payload: isPayAsToken,
+    };
+});
+
 export const walletSlice = createSlice({
     name: 'wallet',
     initialState,
@@ -45,6 +61,12 @@ export const walletSlice = createSlice({
         });
         builder.addCase(setSmartWalletAddress, (state, action) => {
             state.smartWalletAddress = action.payload;
+        });
+        builder.addCase(setOps, (state, action) => {
+            state.ops = action.payload;
+        });
+        builder.addCase(setIsPayAsToken, (state, action) => {
+            state.isPayAsToken = action.payload;
         });
     }
 });

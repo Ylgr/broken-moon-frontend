@@ -8,6 +8,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { MEDICAL_DASHBOARD_PATH, NFT_DASHBOARD_PATH } from '@app/components/router/AppRouter';
 import { useResponsive } from '@app/hooks/useResponsive';
 import { References } from '@app/components/common/References/References';
+import {CreateTransaction} from "@app/components/nft-dashboard/common/CreateTrantraction/CreateTransaction";
 
 const MainLayout: React.FC = () => {
   const [isTwoColumnsLayout, setIsTwoColumnsLayout] = useState(true);
@@ -32,6 +33,7 @@ const MainLayout: React.FC = () => {
           <div>
             <Outlet />
           </div>
+          <CreateTransaction/>
           {!isTwoColumnsLayout && <References />}
         </MainContent>
       </S.LayoutMain>

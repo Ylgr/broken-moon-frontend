@@ -1,4 +1,4 @@
-import {ethers} from "ethers";
+import {BigNumber, ethers} from "ethers";
 import BicAccountFactory from "./abi/BicAccountFactory.json";
 import BicAccount from "./abi/BicAccount.json";
 import BmToken from "./abi/BmToken.json";
@@ -12,13 +12,26 @@ export const bmToken = new ethers.Contract("0x2ef8aa35647530EE276fCBCE2E639F86D8
 
 export const entryPoint = new ethers.Contract("0x0Dea81090663911A57f1cEc9569e55FD852E5dD3", EntryPoint, provider);
 
+export const bicAccount = (address: string) => new ethers.Contract(address, BicAccount, provider);
+
 export const getSmartWalletAddress = async (address: string): Promise<string> => {
     return await bicAccountFactory.getAddress(address, 0);
     // return await bicAccountFactory.entrypoint();
 }
 
-export const getBmBalance = async (address: string): Promise<string> => {
-    return await bmToken.balanceOf(address);
+export const getBmBalance = async (address: string): Promise<BigNumber> => {
+    return (await bmToken.balanceOf(address));
+}
+
+export const getBnBBalance = async (address: string): Promise<BigNumber> => {
+    return (await provider.getBalance(address));
+}
+
+export const getTokenBalance = async (address: string): Promise<{bnb_balance: BigNumber, bm_balance: BigNumber}> => {
+    return {
+        bnb_balance: await getBnBBalance(address),
+        bm_balance: await getBmBalance(address),
+    }
 }
 
 export const bicAccountAbi = BicAccount;
