@@ -23,9 +23,11 @@ export const Balance: React.FC = () => {
     bm_balance: ethers.BigNumber.from(0),
   });
   const [isTransferModalVisible, setIsTransferModalVisible] = useState<boolean>(false);
-  const [transferToken, setTransferToken] = useState<string>('0x2ef8aa35647530EE276fCBCE2E639F86D8B7F1EB');
+  const [transferToken, setTransferToken] = useState<string>(bmToken.address);
   const [transferAddress, setTransferAddress] = useState<string>('0xeaBcd21B75349c59a4177E10ed17FBf2955fE697');
   const [transferAmount, setTransferAmount] = useState<string>('100');
+  const [transferAddress2, setTransferAddress2] = useState<string>('0xF4402fE2B09da7c02504DC308DBc307834CE56fE');
+  const [transferAmount2, setTransferAmount2] = useState<string>('200');
   const userId = useAppSelector((state) => state.user.user?.id);
   const { theme } = useAppSelector((state) => state.theme);
   const smartWalletAddress = useAppSelector((state) => state.wallet.smartWalletAddress as string);
@@ -49,8 +51,10 @@ export const Balance: React.FC = () => {
   const createTransferOp = async () => {
     const initCallData = bmToken.interface.encodeFunctionData("transfer", [transferAddress as any, ethers.utils.parseEther(transferAmount) as any]);
     const callDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [transferToken, ethers.constants.HashZero, initCallData]);
+    const initCallData2 = bmToken.interface.encodeFunctionData("transfer", [transferAddress2 as any, ethers.utils.parseEther(transferAmount2) as any]);
+    const callDataForEntrypoint2 = bicAccountInterface.encodeFunctionData("execute", [transferToken, ethers.constants.HashZero, initCallData2]);
     dispatch(setIsPayAsToken(false));
-    dispatch(setOps([{callData: callDataForEntrypoint}]));
+    dispatch(setOps([{callData: callDataForEntrypoint}, {callData: callDataForEntrypoint2}]));
   }
 
   const positionMenu = (
@@ -136,13 +140,26 @@ export const Balance: React.FC = () => {
               <p>{t('modals.token')}</p>
               <Dropdown overlay={positionMenu} trigger={['click']}>
                 <Button onClick={(e) => e.preventDefault()}>
-                  Broken Moon <DownOutlined />
+                  {/*Broken Moon <DownOutlined />*/}
+                  Beincom <DownOutlined />
                 </Button>
               </Dropdown>
               <p>{t('modals.toAddress')}</p>
                 <Input value={transferAddress}/>
               <p>Amount</p>
                 <Input value={transferAmount}/>
+              <p>And</p>
+              <p>{t('modals.token')}</p>
+              <Dropdown overlay={positionMenu} trigger={['click']}>
+                <Button onClick={(e) => e.preventDefault()}>
+                  {/*Broken Moon <DownOutlined />*/}
+                  Beincom <DownOutlined />
+                </Button>
+              </Dropdown>
+              <p>{t('modals.toAddress')}</p>
+              <Input value={transferAddress2}/>
+              <p>Amount</p>
+              <Input value={transferAmount2}/>
             </Modal>
           </Row>
         </NFTCard>

@@ -50,7 +50,7 @@ export const CreateTransaction: React.FC = () => {
                         const newOp = Object.assign({}, op);
                         console.log('ops.indexOf(op): ', wallet.ops.indexOf(op))
                         console.log(1)
-                        newOp.nonce = await entryPoint.getNonce(wallet.smartWalletAddress as any, 0 as any) ;
+                        newOp.nonce = (await entryPoint.getNonce(wallet.smartWalletAddress as any, 0 as any)).add(wallet.ops.indexOf(op));
                         if(wallet.isPayAsToken) {
                             alert('not implemented yet')
                             break;
