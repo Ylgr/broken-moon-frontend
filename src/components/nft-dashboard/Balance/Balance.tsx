@@ -1,31 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { Col, Row } from 'antd';
-import { useTranslation } from 'react-i18next';
-import { NFTCard } from '@app/components/nft-dashboard/common/NFTCard/NFTCard';
+import React, {useEffect, useState} from 'react';
+import {Col, Row} from 'antd';
+import {useTranslation} from 'react-i18next';
+import {NFTCard} from '@app/components/nft-dashboard/common/NFTCard/NFTCard';
 import {useAppDispatch, useAppSelector} from '@app/hooks/reduxHooks';
-import { formatNumberWithCommas, getCurrencyPrice } from '@app/utils/utils';
-import { getBalance } from '@app/api/earnings.api';
+import {getCurrencyPrice} from '@app/utils/utils';
 import * as S from './Balance.styles';
-import {
-  bicAccount,
-  bicAccountAbi,
-  bicAccountFactory,
-  bmToken, entryPoint,
-  getBmBalance,
-  getSmartWalletAddress, getTokenBalance,
-  provider
-} from "@app/components/contract/smartWallet";
+import {bicAccountInterface, bmToken, getTokenBalance} from "@app/components/contract/smartWallet";
 import {P1} from "@app/components/common/typography/P1/P1";
 import {Modal} from "@app/components/common/Modal/Modal";
 import {Button} from "@app/components/common/buttons/Button/Button";
 import {DownOutlined} from "@ant-design/icons";
 import {Dropdown} from "@app/components/common/Dropdown/Dropdown";
-import {Menu, MenuItem} from "@app/components/common/Menu/Menu";
+import {Menu} from "@app/components/common/Menu/Menu";
 import {Input} from "@app/components/common/inputs/Input/Input";
 import {ethers} from "ethers";
-import BmToken from "@app/components/contract/abi/BmToken.json";
 import {setIsPayAsToken, setOps} from "@app/store/slices/walletSlice";
 import {Switch} from "@app/components/common/Switch/Switch";
+
 export const Balance: React.FC = () => {
   const [balance, setBalance] = useState({
     bnb_balance: ethers.BigNumber.from(0),
@@ -34,6 +25,7 @@ export const Balance: React.FC = () => {
   const [isTransferModalVisible, setIsTransferModalVisible] = useState<boolean>(false);
   const [transferToken, setTransferToken] = useState<string>('0x2ef8aa35647530EE276fCBCE2E639F86D8B7F1EB');
   const [transferAddress, setTransferAddress] = useState<string>('0xeaBcd21B75349c59a4177E10ed17FBf2955fE697');
+  const [transferAmount, setTransferAmount] = useState<string>('100');
   const userId = useAppSelector((state) => state.user.user?.id);
   const { theme } = useAppSelector((state) => state.theme);
   const smartWalletAddress = useAppSelector((state) => state.wallet.smartWalletAddress as string);
@@ -55,10 +47,10 @@ export const Balance: React.FC = () => {
   // }
 
   const createTransferOp = async () => {
-
-
+    const initCallData = bmToken.interface.encodeFunctionData("transfer", [transferAddress as any, ethers.utils.parseEther(transferAmount) as any]);
+    const callDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [transferToken, ethers.constants.HashZero, initCallData]);
     dispatch(setIsPayAsToken(false));
-    dispatch(setOps([]));
+    dispatch(setOps([{callData: callDataForEntrypoint}]));
   }
 
   const positionMenu = (
@@ -120,7 +112,7 @@ export const Balance: React.FC = () => {
 
             <Col span={24}>
               <S.TitleText level={2}>Pay transaction fee as:</S.TitleText>
-              <Switch checkedChildren="BIC" unCheckedChildren="BNB" defaultChecked onClick={
+              <Switch checkedChildren="BIC" unCheckedChildren="BNB" defaultChecked={false} onClick={
                 (checked) => {
                   dispatch(setIsPayAsToken(checked));
                 }
@@ -149,6 +141,8 @@ export const Balance: React.FC = () => {
               </Dropdown>
               <p>{t('modals.toAddress')}</p>
                 <Input value={transferAddress}/>
+              <p>Amount</p>
+                <Input value={transferAmount}/>
             </Modal>
           </Row>
         </NFTCard>

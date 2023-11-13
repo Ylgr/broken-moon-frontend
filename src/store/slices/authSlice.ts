@@ -39,7 +39,7 @@ export const doLogin = createAsyncThunk('auth/doLogin', async (loginPayload: Log
     dispatch(setEncryptedWallet(res.wallet));
     persistEncryptedWallet(res.wallet);
     const wallet = ethers.Wallet.fromEncryptedJsonSync(res.wallet, loginPayload.password);
-    dispatch(setLocalWallet(wallet));
+    // dispatch(setLocalWallet(wallet));
     const localWalletAddress = wallet.address;
     const smartWalletAddress  = await getSmartWalletAddress(localWalletAddress)
     dispatch(setSmartWalletAddress(smartWalletAddress));
