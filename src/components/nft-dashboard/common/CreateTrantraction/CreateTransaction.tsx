@@ -14,12 +14,16 @@ import {
 } from "@app/components/contract/smartWallet";
 import * as process from "process";
 import {setOps} from "@app/store/slices/walletSlice";
+import {Badge} from "@app/components/common/Badge/Badge";
+import {Avatar} from "@app/components/common/Avatar/Avatar";
+import {Button} from "@app/components/common/buttons/Button/Button";
 
 export const CreateTransaction: React.FC = () => {
     const wallet = useAppSelector((state) => state.wallet);
     const [isUnlockWalletModalVisible, setIsUnlockWalletModalVisible] = useState<boolean>(true);
     const [isTransactionModalVisible, setIsTransactionModalVisible] = useState<boolean>(true);
     const [isActiveWalletModalVisible, setIsActiveWalletModalVisible] = useState<boolean>(true);
+    const [isTransactionProgress, setIsTransactionProgress] = useState<boolean>(false);
     const [password, setPassword] = useState<string>('test');
     const [localwallet, setLocalwallet] = useState<ethers.Wallet | null>(null);
     const [tx, setTx] = useState<any>(null);
@@ -30,7 +34,7 @@ export const CreateTransaction: React.FC = () => {
     const [isCreatedWallet, setIsCreatedWallet] = useState<boolean>(false);
 
     const paymasterAddress = '0xCd3E645946d44F1A165C630182b9734C14A66c17'
-    if(wallet.ops) {
+    if(isTransactionProgress) {
         const executeOps = Object.assign([], wallet.ops);
         console.log('lets goooooooooooooooo!')
         if(!localwallet) {
@@ -53,7 +57,10 @@ export const CreateTransaction: React.FC = () => {
                             alert('Wrong password');
                         }
                     }}
-                    onCancel={() => setIsUnlockWalletModalVisible(false)}
+                    onCancel={() => {
+                        setIsUnlockWalletModalVisible(false)
+                        setIsTransactionProgress(false)
+                    }}
                 >
                     <p>Password:</p>
                     <Input value={password} type="password" onChange={(e) => setPassword(e.target.value)}/>
@@ -132,13 +139,26 @@ export const CreateTransaction: React.FC = () => {
                         alert('Transaction failed')
                     }
                 }}
-                onCancel={() => setIsTransactionModalVisible(false)}
+                onCancel={() => {
+                    setIsTransactionModalVisible(false)
+                    setIsTransactionProgress(false)
+                }}
             >
                 <p>Create transaction?</p>
                 {tx && <a href={'https://testnet.bscscan.com/tx/' + tx.transactionHash} target="_blank">Done - Transaction hash</a>}
             </Modal>)
         }
-    } else {
-        return (<></>)
     }
+    return (
+        <Badge count={(wallet.ops && wallet.ops.length) || 0}>
+            <Button onClick={() => {
+                setIsTransactionProgress(true)
+                if(!localwallet) {
+                    setIsUnlockWalletModalVisible(true)
+                } else {
+                    setIsTransactionModalVisible(true)
+                }
+            }}>Create transaction</Button>
+        </Badge>
+    )
 };

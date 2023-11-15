@@ -6,6 +6,8 @@ import { HeaderSearch } from '../components/HeaderSearch/HeaderSearch';
 import { SettingsDropdown } from '../components/settingsDropdown/SettingsDropdown';
 import { HeaderFullscreen } from '../components/HeaderFullscreen/HeaderFullscreen';
 import * as S from '../Header.styles';
+import {Button} from "@app/components/common/buttons/Button/Button";
+import {CreateTransaction} from "@app/components/nft-dashboard/common/CreateTrantraction/CreateTransaction";
 
 interface DesktopHeaderProps {
   isTwoColumnsLayout: boolean;
@@ -19,8 +21,9 @@ export const DesktopHeader: React.FC<DesktopHeaderProps> = ({ isTwoColumnsLayout
           <HeaderSearch />
         </Col>
         <Col>
-          <S.GHButton />
+          <CreateTransaction/>
         </Col>
+
       </Row>
     </S.SearchColumn>
   ) : (
