@@ -23,7 +23,7 @@ export const getCurrencyPrice = (
       return isIcon ? `$${price}` : `${price} USD`;
     }
 
-    case 'BTC' || 'BM': {
+    case 'BM': {
       return isIcon ? (
         <Row align="middle" gutter={[8, 8]}>
           <Col style={{ display: 'flex' }}>
@@ -33,11 +33,11 @@ export const getCurrencyPrice = (
           <Col>{price}</Col>
         </Row>
       ) : (
-        `${price} BTC`
+        `${price} BIC`
       );
     }
 
-    case 'ETH' || 'BNB': {
+    case 'BNB': {
       return isIcon ? (
         <Row align="middle" gutter={[8, 8]}>
           <Col style={{ display: 'flex' }}>
@@ -47,7 +47,7 @@ export const getCurrencyPrice = (
           <Col>{price}</Col>
         </Row>
       ) : (
-        `${price} ETH`
+        `${price} BNB`
       );
     }
 

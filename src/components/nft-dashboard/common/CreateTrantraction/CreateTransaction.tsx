@@ -26,7 +26,7 @@ export const CreateTransaction: React.FC = () => {
     const [isTransactionProgress, setIsTransactionProgress] = useState<boolean>(false);
     const [password, setPassword] = useState<string>('test');
     const [localwallet, setLocalwallet] = useState<ethers.Wallet | null>(null);
-    const [tx, setTx] = useState<any>(null);
+    const [txs, setTxs] = useState<any>([]);
     console.log('wallet: ', wallet)
     const dispatch = useAppDispatch();
     const executeWallet = (new ethers.Wallet(process.env.REACT_APP_PRIVATE_KEY  || 'f45791796f5c42fca32bfe860015b6334e430c98fab408b63f9788064a45a1b5')).connect(provider);
@@ -34,6 +34,7 @@ export const CreateTransaction: React.FC = () => {
     const [isCreatedWallet, setIsCreatedWallet] = useState<boolean>(false);
 
     const paymasterAddress = '0xCd3E645946d44F1A165C630182b9734C14A66c17'
+    const beneficiary = '0xF4402fE2B09da7c02504DC308DBc307834CE56fE'
     if(isTransactionProgress) {
         const executeOps = Object.assign([], wallet.ops);
         console.log('lets goooooooooooooooo!')
@@ -94,7 +95,8 @@ export const CreateTransaction: React.FC = () => {
                         const newOp = Object.assign({}, op);
                         console.log('ops.indexOf(op): ', executeOps.indexOf(op))
                         console.log(1)
-                        newOp.nonce = (await entryPoint.getNonce(wallet.smartWalletAddress as any, 0 as any)).add(executeOps.indexOf(op));
+                        const index = executeOps.indexOf(op);
+                        newOp.nonce = (await entryPoint.getNonce(wallet.smartWalletAddress as any, 0 as any)).add(index);
                         if(!newOp.paymasterAndData) {
                             if(wallet.isPayAsToken) {
                                 newOp.paymasterAndData = paymasterAddress + bmToken.address.slice(2);
@@ -108,7 +110,7 @@ export const CreateTransaction: React.FC = () => {
                         newOp.callGasLimit = 500_000;
                         newOp.verificationGasLimit = 500_000;
                         newOp.preVerificationGas = 500_000;
-                        newOp.maxFeePerGas = newOp.paymasterAndData === '0x' ? 0 : 112;
+                        newOp.maxFeePerGas = (newOp.paymasterAndData === '0x' && isCreatedWallet && index < 3) ? 0 : 112;
                         newOp.maxPriorityFeePerGas = 82;
                         newOp.signature = '0x';
                         console.log('newOp: ', newOp)
@@ -120,7 +122,7 @@ export const CreateTransaction: React.FC = () => {
                         ops = [...ops, newOp];
                     }
                     console.log('ops: ', ops)
-                    const encodedOps = entryPoint.interface.encodeFunctionData("handleOps", [ops, wallet.smartWalletAddress]);
+                    const encodedOps = entryPoint.interface.encodeFunctionData("handleOps", [ops, beneficiary]);
                     console.log('encodedOps: ', encodedOps)
                     const transaction = await executeWallet.sendTransaction({
                         to: entryPoint.address,
@@ -131,13 +133,13 @@ export const CreateTransaction: React.FC = () => {
                     });
                     try {
                         const receipt = await transaction.wait();
-                        console.log('receipt: ', receipt)
-                        setTx(receipt)
+                        setTxs([...txs, receipt.transactionHash])
                         setIsCreatedWallet(false);
                     } catch (e) {
                         console.log('e: ', JSON.stringify(e))
                         alert('Transaction failed')
                     }
+                    dispatch(setOps([]));
                 }}
                 onCancel={() => {
                     setIsTransactionModalVisible(false)
@@ -145,12 +147,13 @@ export const CreateTransaction: React.FC = () => {
                 }}
             >
                 <p>Create transaction?</p>
-                {tx && <a href={'https://testnet.bscscan.com/tx/' + tx.transactionHash} target="_blank">Done - Transaction hash</a>}
+                {txs.map((tx: string) => <a href={'https://testnet.bscscan.com/tx/' + tx} target="_blank">Transaction hash  -  </a>)}
             </Modal>)
         }
     }
+    const opsCount = (wallet.ops && wallet.ops.length) || 0
     return (
-        <Badge count={(wallet.ops && wallet.ops.length) || 0}>
+        <Badge count={opsCount}>
             <Button onClick={() => {
                 setIsTransactionProgress(true)
                 if(!localwallet) {
@@ -158,7 +161,7 @@ export const CreateTransaction: React.FC = () => {
                 } else {
                     setIsTransactionModalVisible(true)
                 }
-            }}>Create transaction</Button>
+            }} disabled={!opsCount}>Create transaction</Button>
         </Badge>
     )
 };

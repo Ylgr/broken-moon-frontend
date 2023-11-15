@@ -90,7 +90,7 @@ export const Balance: React.FC = () => {
                 <Col span={24}>
                   <P1>{smartWalletAddress}</P1>
                   <S.TitleBalanceText level={3}>
-                    {getCurrencyPrice(ethers.utils.formatEther(balance.bnb_balance), 'BNB')}
+                    {getCurrencyPrice(ethers.utils.formatEther(balance.bnb_balance), 'BNB', false)}
                   </S.TitleBalanceText>
                 </Col>
 
@@ -98,7 +98,7 @@ export const Balance: React.FC = () => {
                   <Row gutter={[55, 10]} wrap={false}>
                     <Col>
                       <S.SubtitleBalanceText>
-                        {getCurrencyPrice(ethers.utils.formatEther(balance.bm_balance), 'BM')}
+                        {getCurrencyPrice(ethers.utils.formatEther(balance.bm_balance), 'BM', false)}
                       </S.SubtitleBalanceText>
                     </Col>
 
