@@ -39,15 +39,19 @@ export const CreateTransaction: React.FC = () => {
                     title="Create transaction"
                     visible={isUnlockWalletModalVisible}
                     onOk={() => {
-                        const localWallet = ethers.Wallet.fromEncryptedJsonSync(wallet.encryptedWallet as string, password);
-                        // dispatch(setLocalWallet(localWallet));
-                        setLocalwallet(localWallet)
-                        provider.getCode(wallet.smartWalletAddress as any).then((code) => {
-                            if(code === '0x') {
-                                setIsCreatedWallet(true)
-                            }
-                        });
-                        setIsUnlockWalletModalVisible(false);
+                        try {
+                            const localWallet = ethers.Wallet.fromEncryptedJsonSync(wallet.encryptedWallet as string, password);
+                            // dispatch(setLocalWallet(localWallet));
+                            setLocalwallet(localWallet)
+                            provider.getCode(wallet.smartWalletAddress as any).then((code) => {
+                                if(code === '0x') {
+                                    setIsCreatedWallet(true)
+                                }
+                            });
+                            setIsUnlockWalletModalVisible(false);
+                        } catch (e) {
+                            alert('Wrong password');
+                        }
                     }}
                     onCancel={() => setIsUnlockWalletModalVisible(false)}
                 >
@@ -58,15 +62,20 @@ export const CreateTransaction: React.FC = () => {
             );
         } else {
             if(isCreatedWallet) {
-                const initCallData = bicAccountFactory.interface.encodeFunctionData("createAccount", [localwallet.address as any, ethers.constants.HashZero]);
-                const callDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [bicAccountFactory.address,  ethers.constants.HashZero, ethers.constants.HashZero]);
+                console.log('create wallet')
+                const initTransferCallData = bmToken.interface.encodeFunctionData("transfer", [paymasterAddress, ethers.utils.parseEther("1")]);
+                const callTransferDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [bmToken.address, ethers.constants.HashZero, initTransferCallData]);
+                executeOps.unshift({callData: callTransferDataForEntrypoint, paymasterAndData: '0x'});
+                const initApproveCallData = bmToken.interface.encodeFunctionData("approve", [paymasterAddress, ethers.constants.MaxUint256]);
+                const callApproveDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [bmToken.address, ethers.constants.HashZero, initApproveCallData]);
+                executeOps.unshift({callData: callApproveDataForEntrypoint, paymasterAndData: '0x'});
+
+                const initCreateAccountCallData = bicAccountFactory.interface.encodeFunctionData("createAccount", [localwallet.address as any, ethers.constants.HashZero]);
                 const initCode = ethers.utils.solidityPack(
                     ["bytes", "bytes"],
-                    [ethers.utils.solidityPack(["bytes"], [bicAccountFactory.address]), initCallData]
+                    [ethers.utils.solidityPack(["bytes"], [bicAccountFactory.address]), initCreateAccountCallData]
                 );
-                executeOps.unshift({initCode, callData: callDataForEntrypoint});
-                executeOps.unshift({callData: bmToken.interface.encodeFunctionData("approve", [paymasterAddress as any, ethers.constants.MaxUint256])});
-                executeOps.unshift({callData: bmToken.interface.encodeFunctionData("transfer", [paymasterAddress, ethers.utils.parseEther("1")])});
+                executeOps.unshift({initCode, callData: '0x', paymasterAndData: '0x'});
             }
             return (<Modal
                 title="Create transaction"
@@ -79,10 +88,12 @@ export const CreateTransaction: React.FC = () => {
                         console.log('ops.indexOf(op): ', executeOps.indexOf(op))
                         console.log(1)
                         newOp.nonce = (await entryPoint.getNonce(wallet.smartWalletAddress as any, 0 as any)).add(executeOps.indexOf(op));
-                        if(wallet.isPayAsToken) {
-                            newOp.paymasterAndData = paymasterAddress + bmToken.address.slice(2);
-                        } else {
-                            newOp.paymasterAndData = '0x';
+                        if(!newOp.paymasterAndData) {
+                            if(wallet.isPayAsToken) {
+                                newOp.paymasterAndData = paymasterAddress + bmToken.address.slice(2);
+                            } else {
+                                newOp.paymasterAndData = '0x'
+                            }
                         }
                         console.log(2)
                         newOp.initCode = op.initCode || '0x';
@@ -90,7 +101,7 @@ export const CreateTransaction: React.FC = () => {
                         newOp.callGasLimit = 500_000;
                         newOp.verificationGasLimit = 500_000;
                         newOp.preVerificationGas = 500_000;
-                        newOp.maxFeePerGas = 112;
+                        newOp.maxFeePerGas = newOp.paymasterAndData === '0x' ? 0 : 112;
                         newOp.maxPriorityFeePerGas = 82;
                         newOp.signature = '0x';
                         console.log('newOp: ', newOp)
@@ -107,17 +118,19 @@ export const CreateTransaction: React.FC = () => {
                     const transaction = await executeWallet.sendTransaction({
                         to: entryPoint.address,
                         data: encodedOps,
-                        gasLimit: 2000000,
+                        // gasLimit: 2000000,
+                        gasLimit: 20000000,
                         gasPrice: 5000000000,
                     });
                     try {
                         const receipt = await transaction.wait();
                         console.log('receipt: ', receipt)
                         setTx(receipt)
+                        setIsCreatedWallet(false);
                     } catch (e) {
-                        console.log('e: ', e)
+                        console.log('e: ', JSON.stringify(e))
+                        alert('Transaction failed')
                     }
-                    setIsCreatedWallet(false);
                 }}
                 onCancel={() => setIsTransactionModalVisible(false)}
             >

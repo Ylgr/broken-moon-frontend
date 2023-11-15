@@ -53,7 +53,6 @@ export const Balance: React.FC = () => {
     const callDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [transferToken, ethers.constants.HashZero, initCallData]);
     const initCallData2 = bmToken.interface.encodeFunctionData("transfer", [transferAddress2 as any, ethers.utils.parseEther(transferAmount2) as any]);
     const callDataForEntrypoint2 = bicAccountInterface.encodeFunctionData("execute", [transferToken, ethers.constants.HashZero, initCallData2]);
-    dispatch(setIsPayAsToken(false));
     dispatch(setOps([{callData: callDataForEntrypoint}, {callData: callDataForEntrypoint2}]));
   }
 
