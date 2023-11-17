@@ -24,9 +24,9 @@ export const RecentlyAddedNft: React.FC = () => {
 
   const cards = useMemo(() => {
     return {
-      mobile: nfts.slice(0, 3).map((nft) => <NftCard key={nft.title} nftItem={nft} />),
+      mobile: nfts.slice(0, 3).map((nft) => <NftCard key={nft.name} nftItem={nft} />),
       tablet: nfts.map((nft) => (
-        <div key={nft.title}>
+        <div key={nft.name}>
           <S.CardWrapper>
             <NftCard nftItem={nft} />
           </S.CardWrapper>
@@ -40,7 +40,7 @@ export const RecentlyAddedNft: React.FC = () => {
 
   return (
     <>
-      <NFTCardHeader title={t('nft.recentlyAddedNFTs')}>
+      <NFTCardHeader title="Prime NFT">
         {isTablet && (
           <Row align="middle">
             <Col>
