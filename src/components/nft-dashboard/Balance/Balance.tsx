@@ -5,7 +5,12 @@ import {NFTCard} from '@app/components/nft-dashboard/common/NFTCard/NFTCard';
 import {useAppDispatch, useAppSelector} from '@app/hooks/reduxHooks';
 import {getCurrencyPrice} from '@app/utils/utils';
 import * as S from './Balance.styles';
-import {bicAccountInterface, bmToken, getTokenBalance} from "@app/components/contract/smartWallet";
+import {
+  bicAccountInterface,
+  bicRegistrarController,
+  bmToken,
+  getTokenBalance
+} from "@app/components/contract/smartWallet";
 import {P1} from "@app/components/common/typography/P1/P1";
 import {Modal} from "@app/components/common/Modal/Modal";
 import {Button} from "@app/components/common/buttons/Button/Button";
@@ -16,8 +21,12 @@ import {Input} from "@app/components/common/inputs/Input/Input";
 import {ethers} from "ethers";
 import {setIsPayAsToken, setOps} from "@app/store/slices/walletSlice";
 import {Switch} from "@app/components/common/Switch/Switch";
+import {Panel} from "@app/components/common/Collapse/Collapse";
+import * as SA from '@app/pages/uiComponentsPages//UIComponentsPage.styles';
 
 export const Balance: React.FC = () => {
+  const DAYS = 24 * 60 * 60
+  const REGISTRATION_TIME = 28 * DAYS
   const [balance, setBalance] = useState({
     bnb_balance: ethers.BigNumber.from(0),
     bm_balance: ethers.BigNumber.from(0),
@@ -28,6 +37,8 @@ export const Balance: React.FC = () => {
   const [transferAmount, setTransferAmount] = useState<string>('100');
   const [transferAddress2, setTransferAddress2] = useState<string>('0xF4402fE2B09da7c02504DC308DBc307834CE56fE');
   const [transferAmount2, setTransferAmount2] = useState<string>('200');
+  const [namespaceName, setName] = useState<string>('');
+  const [namespacePrice, setPrice] = useState<string>('0');
   const userId = useAppSelector((state) => state.user.user?.id);
   const { theme } = useAppSelector((state) => state.theme);
   const smartWalletAddress = useAppSelector((state) => state.wallet.smartWalletAddress as string);
@@ -76,12 +87,33 @@ export const Balance: React.FC = () => {
       </Menu>
   );
 
+  async function getPriceAndSetName(newString: string) {
+    console.log('hahah')
+    if(newString.length === 0) {
+      setPrice('0')
+    } else if(newString.length !== namespaceName.length) {
+      console.log('dasdsaddasdsaas')
+      bicRegistrarController.rentPrice(newString, REGISTRATION_TIME).then(
+          (price: any) =>
+              setPrice(ethers.utils.formatEther(price.base.toString()))
+      )
+    }
+    setName(newString)
+  }
+
   return (
     <Row>
       <Col span={24}>
         <S.TitleText level={2}>{t('nft.yourBalance')}</S.TitleText>
       </Col>
-
+      <SA.CollapseWrapper defaultActiveKey={['1']}>
+        <Panel header="You don't have namespace" key="1">
+          <p>Buy one?</p>
+          <Input value={namespaceName} onChange={(event) => getPriceAndSetName(event.target.value)}></Input>
+          <p>Price: {namespacePrice} BIC</p>
+            <Button>Buy</Button>
+        </Panel>
+      </SA.CollapseWrapper>
       <Col span={24}>
         <NFTCard isSider>
           <Row gutter={[30, 30]}>
@@ -89,6 +121,7 @@ export const Balance: React.FC = () => {
               <Row gutter={[14, 14]}>
                 <Col span={24}>
                   <P1>{smartWalletAddress}</P1>
+
                   <S.TitleBalanceText level={3}>
                     {getCurrencyPrice(ethers.utils.formatEther(balance.bnb_balance), 'BNB', false)}
                   </S.TitleBalanceText>
