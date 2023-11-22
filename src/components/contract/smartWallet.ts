@@ -5,6 +5,7 @@ import BmToken from "./abi/BmToken.json";
 import EntryPoint from "./abi/EntryPoint.json";
 import Treasury from "./abi/Treasury.json";
 import BICRegistrarController from "./abi/BICRegistrarController.json";
+import NameWrapper from "./abi/NameWrapper.json";
 // bsc testnet
 export const provider = new ethers.providers.JsonRpcProvider("https://data-seed-prebsc-1-s1.binance.org:8545/");
 export const bicAccountFactory = new ethers.Contract("0x0e5476a5AfD15c1e35ca4d97D220cb9f40617609", BicAccountFactory, provider);
@@ -13,8 +14,9 @@ export const bmToken = new ethers.Contract("0x79942a7E73b3E27038D896E16157ECaac8
 
 export const entryPoint = new ethers.Contract("0x0Dea81090663911A57f1cEc9569e55FD852E5dD3", EntryPoint, provider);
 
-export const bicRegistrarController = new ethers.Contract('0xcCf550BFfa6dCedD1f89D23da7999ED9D19403aC', BICRegistrarController, provider);
+export const bicRegistrarController = new ethers.Contract('0x25f22aa0162FD8617c1271f8dd39876df8Ea8020', BICRegistrarController, provider);
 
+export const nameWrapper = new ethers.Contract('0x7E38c6E84cB75bF5c7475E570ed21F5Ab64Be407', NameWrapper, provider);
 export const bicAccount = (address: string) => new ethers.Contract(address, BicAccount, provider);
 
 export const bicAccountInterface = new ethers.utils.Interface(BicAccount);

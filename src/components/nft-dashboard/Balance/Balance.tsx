@@ -9,7 +9,7 @@ import {
   bicAccountInterface,
   bicRegistrarController,
   bmToken,
-  getTokenBalance
+  getTokenBalance, nameWrapper
 } from "@app/components/contract/smartWallet";
 import {P1} from "@app/components/common/typography/P1/P1";
 import {Modal} from "@app/components/common/Modal/Modal";
@@ -23,7 +23,10 @@ import {setIsPayAsToken, setOps} from "@app/store/slices/walletSlice";
 import {Switch} from "@app/components/common/Switch/Switch";
 import {Panel} from "@app/components/common/Collapse/Collapse";
 import * as SA from '@app/pages/uiComponentsPages//UIComponentsPage.styles';
+import axios from 'axios';
 
+// @ts-ignore
+// @ts-ignore
 export const Balance: React.FC = () => {
   const DAYS = 24 * 60 * 60
   const REGISTRATION_TIME = 28 * DAYS
@@ -44,10 +47,32 @@ export const Balance: React.FC = () => {
   const smartWalletAddress = useAppSelector((state) => state.wallet.smartWalletAddress as string);
   // const localWallet = useAppSelector((state) => state.wallet.localWallet) as ethers.Wallet;
   const encryptedWallet = useAppSelector((state) => state.wallet.encryptedWallet);
+  const ops = useAppSelector((state) => state.wallet.ops);
   useEffect(() => {
     console.log('smartWalletAddress', smartWalletAddress);
     smartWalletAddress && getTokenBalance(smartWalletAddress).then((balance) => {
     setBalance(balance);
+    const eventNamespaceNftUrl = "https://api-testnet.bscscan.com/api?module=logs&action=getLogs&fromBlock=0&toBlock=lastest&address=0x7E38c6E84cB75bF5c7475E570ed21F5Ab64Be407&topic0=0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62&topic0_2_opr=and&topic2=0x0000000000000000000000000000000000000000000000000000000000000000&apikey=E8AJ7W87ZG8A6TU46Q4K1ICFU2GK6YMKYR"
+    axios.get(eventNamespaceNftUrl).then(async (response) => {
+      if(response.data) {
+        const ids = response.data.result.map((e: { data: string; }) => e.data.substring(0,66))
+        const nftData = []
+        for(const id of ids) {
+          const name = ethers.utils._toEscapedUtf8String(
+              await nameWrapper.names(id)
+          )
+          const removePrefixName = name.substring(7, name.length)
+          const startOfSuffix = removePrefixName.search(/[&\/\\#,+()$~%.'":*?<>{}]/g)
+          nftData.push({
+            id: id,
+            owner: await nameWrapper.ownerOf(id),
+            name: removePrefixName.substring(0, startOfSuffix),
+          })
+        }
+
+        console.log('nftData: ', nftData)
+      }
+    });
   })
   }, [userId]);
 
@@ -60,11 +85,12 @@ export const Balance: React.FC = () => {
   // }
 
   const createTransferOp = async () => {
+
     const initCallData = bmToken.interface.encodeFunctionData("transfer", [transferAddress as any, ethers.utils.parseEther(transferAmount) as any]);
     const callDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [transferToken, ethers.constants.HashZero, initCallData]);
     const initCallData2 = bmToken.interface.encodeFunctionData("transfer", [transferAddress2 as any, ethers.utils.parseEther(transferAmount2) as any]);
     const callDataForEntrypoint2 = bicAccountInterface.encodeFunctionData("execute", [transferToken, ethers.constants.HashZero, initCallData2]);
-    dispatch(setOps([{callData: callDataForEntrypoint}, {callData: callDataForEntrypoint2}]));
+    dispatch(setOps([...(ops || []), {callData: callDataForEntrypoint}, {callData: callDataForEntrypoint2}]));
   }
 
   const positionMenu = (
@@ -88,17 +114,54 @@ export const Balance: React.FC = () => {
   );
 
   async function getPriceAndSetName(newString: string) {
-    console.log('hahah')
     if(newString.length === 0) {
       setPrice('0')
     } else if(newString.length !== namespaceName.length) {
-      console.log('dasdsaddasdsaas')
       bicRegistrarController.rentPrice(newString, REGISTRATION_TIME).then(
           (price: any) =>
               setPrice(ethers.utils.formatEther(price.base.toString()))
       )
     }
     setName(newString)
+  }
+
+  async function createRegistryNamespaceOps() {
+    console.log('createRegistryNamespaceOps')
+    if(namespaceName.length === 0) {
+      console.log('namespaceName.length === 0')
+        return;
+    }
+    let newOps: any[] = [];
+    const MAX_EXPIRY: bigint = BigInt("18446744073709551615");
+    const secret =
+        '0x0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF'
+    const resolverAddress = "0x9a9d969b5bcC1E299DBff054a86D65D4040cB56E";
+    const commitment = await bicRegistrarController.makeCommitment(
+        namespaceName,
+        smartWalletAddress,
+        REGISTRATION_TIME,
+        secret,
+        resolverAddress,
+        [],
+        false,
+        0,
+        MAX_EXPIRY,
+    )
+    const initCallData = bicRegistrarController.interface.encodeFunctionData("commit", [commitment]);
+    const callDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [bicRegistrarController.address, ethers.constants.HashZero, initCallData]);
+    newOps.push({callData: callDataForEntrypoint});
+
+    const fee = ethers.utils.parseEther(namespacePrice);
+    if(await bmToken.allowance(smartWalletAddress, bicRegistrarController.address) < fee) {
+      const initApproveCallData = bmToken.interface.encodeFunctionData("approve", [bicRegistrarController.address, ethers.constants.MaxUint256]);
+        const callApproveDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [bmToken.address, ethers.constants.HashZero, initApproveCallData]);
+      newOps.push({callData: callApproveDataForEntrypoint});
+    }
+    const initRegisterCallData = bicRegistrarController.interface.encodeFunctionData("register", [namespaceName, smartWalletAddress, REGISTRATION_TIME, secret, resolverAddress, [], false, 0, MAX_EXPIRY, fee]);
+    const callRegisterDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [bicRegistrarController.address, ethers.constants.HashZero, initRegisterCallData]);
+    newOps.push({callData: callRegisterDataForEntrypoint});
+    console.log('newOps: ', newOps)
+    dispatch(setOps([...(ops || []), ...newOps]));
   }
 
   return (
@@ -111,7 +174,7 @@ export const Balance: React.FC = () => {
           <p>Buy one?</p>
           <Input value={namespaceName} onChange={(event) => getPriceAndSetName(event.target.value)}></Input>
           <p>Price: {namespacePrice} BIC</p>
-            <Button>Buy</Button>
+            <Button onClick={() => createRegistryNamespaceOps()} block>Buy</Button>
         </Panel>
       </SA.CollapseWrapper>
       <Col span={24}>
