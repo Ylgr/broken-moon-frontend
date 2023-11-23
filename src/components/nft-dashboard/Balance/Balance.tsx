@@ -8,7 +8,7 @@ import * as S from './Balance.styles';
 import {
   bicAccountInterface,
   bicRegistrarController,
-  bmToken,
+  bmToken, freeToMintNft,
   getTokenBalance, nameWrapper
 } from "@app/components/contract/smartWallet";
 import {P1} from "@app/components/common/typography/P1/P1";
@@ -38,10 +38,13 @@ export const Balance: React.FC = () => {
   const [transferToken, setTransferToken] = useState<string>(bmToken.address);
   const [transferAddress, setTransferAddress] = useState<string>('0xeaBcd21B75349c59a4177E10ed17FBf2955fE697');
   const [transferAmount, setTransferAmount] = useState<string>('100');
-  const [transferAddress2, setTransferAddress2] = useState<string>('0xF4402fE2B09da7c02504DC308DBc307834CE56fE');
-  const [transferAmount2, setTransferAmount2] = useState<string>('200');
+  const [ namespaceData, setNamespaceData] = useState<{ id: any; owner: any; name: string; }[]>([])
+  const [ ownNamespaceData, setOwnNamespaceData] = useState<{ id: any; owner: any; name: string; }[]>([])
   const [namespaceName, setName] = useState<string>('');
   const [namespacePrice, setPrice] = useState<string>('0');
+  const [nftMintNumber, setNftMintNumber] = useState<number>(0);
+  const [previewNftUrls, setPreviewNftUrls] = useState<string[]>([]);
+  const [currentTotalSupplyFreeNft, setCurrentTotalSupplyFreeNft] = useState<number>(0);
   const userId = useAppSelector((state) => state.user.user?.id);
   const { theme } = useAppSelector((state) => state.theme);
   const smartWalletAddress = useAppSelector((state) => state.wallet.smartWalletAddress as string);
@@ -69,10 +72,13 @@ export const Balance: React.FC = () => {
             name: removePrefixName.substring(0, startOfSuffix),
           })
         }
-
-        console.log('nftData: ', nftData)
+        setNamespaceData(nftData);
+        setOwnNamespaceData(nftData.filter(e => e.owner === smartWalletAddress))
       }
     });
+      freeToMintNft.totalSupply().then((totalSupply: BigInt) => {
+        setCurrentTotalSupplyFreeNft(parseInt(totalSupply.toString()))
+      });
   })
   }, [userId]);
 
@@ -88,9 +94,7 @@ export const Balance: React.FC = () => {
 
     const initCallData = bmToken.interface.encodeFunctionData("transfer", [transferAddress as any, ethers.utils.parseEther(transferAmount) as any]);
     const callDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [transferToken, ethers.constants.HashZero, initCallData]);
-    const initCallData2 = bmToken.interface.encodeFunctionData("transfer", [transferAddress2 as any, ethers.utils.parseEther(transferAmount2) as any]);
-    const callDataForEntrypoint2 = bicAccountInterface.encodeFunctionData("execute", [transferToken, ethers.constants.HashZero, initCallData2]);
-    dispatch(setOps([...(ops || []), {callData: callDataForEntrypoint}, {callData: callDataForEntrypoint2}]));
+    dispatch(setOps([...(ops || []), {callData: callDataForEntrypoint}]));
   }
 
   const positionMenu = (
@@ -164,14 +168,37 @@ export const Balance: React.FC = () => {
     dispatch(setOps([...(ops || []), ...newOps]));
   }
 
+  async function createMintFreeNftOps() {
+    console.log('createMintFreeNftOps')
+    if(nftMintNumber === 0) {
+      console.log('nftMintNumber === 0')
+      return;
+    }
+    const initCallData = freeToMintNft.interface.encodeFunctionData("mint", [smartWalletAddress,nftMintNumber]);
+    const callDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [freeToMintNft.address, ethers.constants.HashZero, initCallData]);
+    dispatch(setOps([...(ops || []), {callData: callDataForEntrypoint}]));
+  }
+
   return (
     <Row>
       <Col span={24}>
         <S.TitleText level={2}>{t('nft.yourBalance')}</S.TitleText>
       </Col>
       <SA.CollapseWrapper defaultActiveKey={['1']}>
-        <Panel header="You don't have namespace" key="1">
-          <p>Buy one?</p>
+        <Panel header={ownNamespaceData.length ? `You have ${ownNamespaceData.length} namespace` :"You don't have namespace"} key="1">
+          {ownNamespaceData.length ? <Row>
+            <p>You have:</p>
+            <Row>
+              {ownNamespaceData.map((namespace, index) => (
+                  <Row>
+                    {index? ', ': ''}
+                    <a href={"https://testnet.bscscan.com/nft/0x7E38c6E84cB75bF5c7475E570ed21F5Ab64Be407/" +ethers.utils.formatEther(namespace.id).toString().replace('.', '')}>{namespace.name}</a>
+                  </Row>))}
+
+            </Row>
+          </Row> : ''
+          }
+          <p>Buy new one?</p>
           <Input value={namespaceName} onChange={(event) => getPriceAndSetName(event.target.value)}></Input>
           <p>Price: {namespacePrice} BIC</p>
             <Button onClick={() => createRegistryNamespaceOps()} block>Buy</Button>
@@ -240,25 +267,44 @@ export const Balance: React.FC = () => {
                 </Button>
               </Dropdown>
               <p>{t('modals.toAddress')}</p>
-                <Input value={transferAddress}/>
+                <Input value={transferAddress} onChange={(e) => {
+                  const namespaceList = namespaceData.map((e) => e.name)
+                  if(namespaceList.includes(e.target.value)) {
+                    const namespace = namespaceData.find((namespace) => namespace.name === e.target.value)
+                    setTransferAddress(namespace?.owner)
+                  } else {
+                    setTransferAddress(e.target.value)
+                  }
+                }}/>
               <p>Amount</p>
-                <Input value={transferAmount}/>
-              <p>And</p>
-              <p>{t('modals.token')}</p>
-              <Dropdown overlay={positionMenu} trigger={['click']}>
-                <Button onClick={(e) => e.preventDefault()}>
-                  {/*Broken Moon <DownOutlined />*/}
-                  Beincom <DownOutlined />
-                </Button>
-              </Dropdown>
-              <p>{t('modals.toAddress')}</p>
-              <Input value={transferAddress2}/>
-              <p>Amount</p>
-              <Input value={transferAmount2}/>
+                <Input value={transferAmount} onChange={(e) => setTransferAmount(e.target.value)}/>
             </Modal>
           </Row>
         </NFTCard>
       </Col>
+
+      <SA.CollapseWrapper defaultActiveKey={['1']}>
+        <Panel header="Want to mint free NFT?" key="2">
+
+          <p>Number of NFT for mint</p>
+          <Input type="number" value={nftMintNumber} onChange={(e) => {
+            const mintAmount = parseInt(e.target.value)
+            console.log('mintAmount: ', mintAmount)
+            setNftMintNumber(mintAmount)
+            const previewNftUrlsWillMint = []
+            for(let i = 0; i < mintAmount; i++) {
+              console.log('i: ', i)
+              previewNftUrlsWillMint.push(`https://api.dicebear.com/7.x/adventurer/svg?seed=beincom-test${currentTotalSupplyFreeNft+i}`)
+            }
+            setPreviewNftUrls(previewNftUrlsWillMint)
+          }}></Input>
+          <p>Preview expected NFT:</p>
+          {previewNftUrls.map((url) => (
+              <img src={url} alt="nft" width={100} height={100}/>
+            ))}
+          <Button onClick={() => createMintFreeNftOps()} block disabled={!nftMintNumber}>Mint</Button>
+        </Panel>
+      </SA.CollapseWrapper>
     </Row>
   );
 };

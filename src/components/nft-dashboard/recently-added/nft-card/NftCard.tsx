@@ -76,7 +76,7 @@ export const NftCard: React.FC<NftCardProps> = ({ nftItem }) => {
       <S.NftImage src={nftItem.image} alt="nftImage" />
       <S.NftInfo>
         <S.InfoRow>
-          <S.Title>{nftItem.name}</S.Title>
+          <S.Title><a href={`https://testnet.bscscan.com/nft/${nftItem.address}/${nftItem.tokenId}`} target="_blank">{nftItem.name}</a></S.Title>
         </S.InfoRow>
         {isTablet ? tabletLayout : mobileLayout}
       </S.NftInfo>

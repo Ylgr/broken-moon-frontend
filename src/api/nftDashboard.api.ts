@@ -15,6 +15,8 @@ export interface NftItem {
     }[];
     customImage: string;
   customAnimationUrl: string;
+  address: string;
+  tokenId: number;
 }
 const primeNfts = PrimeNfts.map((nft) => ({
     ...nft,

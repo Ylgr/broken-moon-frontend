@@ -6,6 +6,7 @@ import EntryPoint from "./abi/EntryPoint.json";
 import Treasury from "./abi/Treasury.json";
 import BICRegistrarController from "./abi/BICRegistrarController.json";
 import NameWrapper from "./abi/NameWrapper.json";
+import FreeToMintNft from "./abi/FreeToMintNft.json";
 // bsc testnet
 export const provider = new ethers.providers.JsonRpcProvider("https://data-seed-prebsc-1-s1.binance.org:8545/");
 export const bicAccountFactory = new ethers.Contract("0x0e5476a5AfD15c1e35ca4d97D220cb9f40617609", BicAccountFactory, provider);
@@ -44,3 +45,5 @@ export const getTokenBalance = async (address: string): Promise<{bnb_balance: Bi
 }
 
 export const bicAccountAbi = BicAccount;
+
+export const freeToMintNft = new ethers.Contract("0x0B32aD755626BFc0a88402aA25E4C635A802d83d", FreeToMintNft, provider);
