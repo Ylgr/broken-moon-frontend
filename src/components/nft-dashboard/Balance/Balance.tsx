@@ -35,6 +35,7 @@ export const Balance: React.FC = () => {
     bm_balance: ethers.BigNumber.from(0),
   });
   const [isTransferModalVisible, setIsTransferModalVisible] = useState<boolean>(false);
+  const [isTransferNftModalVisible, setIsTransferNftModalVisible] = useState<boolean>(false);
   const [transferToken, setTransferToken] = useState<string>(bmToken.address);
   const [transferAddress, setTransferAddress] = useState<string>('0xeaBcd21B75349c59a4177E10ed17FBf2955fE697');
   const [transferAmount, setTransferAmount] = useState<string>('100');
@@ -42,6 +43,8 @@ export const Balance: React.FC = () => {
   const [ ownNamespaceData, setOwnNamespaceData] = useState<{ id: any; owner: any; name: string; }[]>([])
   const [namespaceName, setName] = useState<string>('');
   const [namespacePrice, setPrice] = useState<string>('0');
+  const [ownNfts, setOwnNfts] = useState<{address: string; id: any; image: string;}[]>([]);
+  const [ownNftSelected, setOwnNftSelected] = useState<{address: string; id: any; image: string;}>({address: '', id: '', image: ''});
   const [nftMintNumber, setNftMintNumber] = useState<number>(0);
   const [previewNftUrls, setPreviewNftUrls] = useState<string[]>([]);
   const [currentTotalSupplyFreeNft, setCurrentTotalSupplyFreeNft] = useState<number>(0);
@@ -79,8 +82,26 @@ export const Balance: React.FC = () => {
       freeToMintNft.totalSupply().then((totalSupply: BigInt) => {
         setCurrentTotalSupplyFreeNft(parseInt(totalSupply.toString()))
       });
+      getNft(freeToMintNft.address)
   })
   }, [userId]);
+
+  const getNft = async (nftAddress: string) => {
+    const nftInEvents = await axios.get(`https://api-testnet.bscscan.com/api?module=logs&action=getLogs&fromBlock=0&toBlock=lastest&address=${nftAddress}&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_2_opr=and&topic2=0x000000000000000000000000${smartWalletAddress.substring(2, smartWalletAddress.length)}&apikey=E8AJ7W87ZG8A6TU46Q4K1ICFU2GK6YMKYR`)
+    const nftInIds = nftInEvents.data.result.map((e: { topics: string[]; }) => parseInt(e.topics[3]))
+    const nftOutEvents = await axios.get(`https://api-testnet.bscscan.com/api?module=logs&action=getLogs&fromBlock=0&toBlock=lastest&address=${nftAddress}&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_1_opr=and&topic1=0x000000000000000000000000${smartWalletAddress.substring(2, smartWalletAddress.length)}&apikey=E8AJ7W87ZG8A6TU46Q4K1ICFU2GK6YMKYR`)
+    const nftOutIds = nftOutEvents.data.result.map((e: { topics: string[]; }) => parseInt(e.topics[3]))
+    const nftIds = nftInIds.filter((e: string) => !nftOutIds.includes(e))
+    const nfts = []
+    for (const id of nftIds) {
+      const uri = await freeToMintNft.tokenURI(id)
+      console.log('uri: ', uri)
+      if(uri.includes('https://raw.githubusercontent.com/Ylgr/seadrop')) {
+        nfts.push({address: nftAddress, id: id, image: 'https://api.dicebear.com/7.x/adventurer/svg?seed=beincom-test' + id})
+      }
+    }
+    setOwnNfts(nfts);
+  }
 
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
@@ -179,6 +200,11 @@ export const Balance: React.FC = () => {
     dispatch(setOps([...(ops || []), {callData: callDataForEntrypoint}]));
   }
 
+  async function createTransferNftOp() {
+    const initCallData = freeToMintNft.interface.encodeFunctionData("transferFrom", [smartWalletAddress, transferAddress, ownNftSelected.id]);
+    const callDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [freeToMintNft.address, ethers.constants.HashZero, initCallData]);
+    dispatch(setOps([...(ops || []), {callData: callDataForEntrypoint}]));
+  }
   return (
     <Row>
       <Col span={24}>
@@ -216,7 +242,6 @@ export const Balance: React.FC = () => {
                     {getCurrencyPrice(ethers.utils.formatEther(balance.bnb_balance), 'BNB', false)}
                   </S.TitleBalanceText>
                 </Col>
-
                 <Col span={24}>
                   <Row gutter={[55, 10]} wrap={false}>
                     <Col>
@@ -230,6 +255,19 @@ export const Balance: React.FC = () => {
                 {/*        {getCurrencyPrice(formatNumberWithCommas(balance.btc_balance), 'BTC')}*/}
                 {/*      </S.SubtitleBalanceText>*/}
                 {/*    </Col>*/}
+                  </Row>
+                </Col>
+                <Col span={24}>
+                  <Row gutter={[14, 14]}>
+                    <Col span={24}>
+                      <p>NFT:</p>
+                      {ownNfts.map((nft) => (
+                          <img src={nft.image} alt="nft" width={100} height={100} onClick={() => {
+                            setOwnNftSelected(nft)
+                            setIsTransferNftModalVisible(true)
+                          }}/>
+                        ))}
+                    </Col>
                   </Row>
                 </Col>
               </Row>
@@ -278,6 +316,28 @@ export const Balance: React.FC = () => {
                 }}/>
               <p>Amount</p>
                 <Input value={transferAmount} onChange={(e) => setTransferAmount(e.target.value)}/>
+            </Modal>
+            <Modal
+                title="Transfer NFT"
+                visible={isTransferNftModalVisible}
+                onOk={() => {
+                  createTransferNftOp()
+                  setIsTransferNftModalVisible(false)
+                }}
+                onCancel={() => setIsTransferNftModalVisible(false)}
+            >
+
+              <p>{t('modals.toAddress')}</p>
+              <Input value={transferAddress} onChange={(e) => {
+                const namespaceList = namespaceData.map((e) => e.name)
+                if(namespaceList.includes(e.target.value)) {
+                  const namespace = namespaceData.find((namespace) => namespace.name === e.target.value)
+                  setTransferAddress(namespace?.owner)
+                } else {
+                  setTransferAddress(e.target.value)
+                }
+              }}/>
+              <img src={ownNftSelected.image} alt={ownNftSelected.id}/>
             </Modal>
           </Row>
         </NFTCard>
