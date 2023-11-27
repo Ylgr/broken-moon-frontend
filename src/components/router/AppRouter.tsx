@@ -128,7 +128,7 @@ export const AppRouter: React.FC = () => {
   );
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename='/broken-moon-frontend'>
       <Routes>
         <Route path={NFT_DASHBOARD_PATH} element={protectedLayout}>
           <Route index element={<NftDashboard />} />
