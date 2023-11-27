@@ -8,24 +8,58 @@ import { ViewAll } from '@app/components/nft-dashboard/common/ViewAll/ViewAll';
 import { NFTCardHeader } from '@app/components/nft-dashboard/common/NFTCardHeader/NFTCardHeader';
 import { TrendingCollection } from '@app/components/nft-dashboard/trending-collections/collection/TrendingCollection';
 import { useResponsive } from '@app/hooks/useResponsive';
-import { getTrendingActivities, TrendingActivity } from '@app/api/activity.api';
+import { ActionInfo } from '@app/api/activity.api';
 import * as S from './TrendingCollections.styles';
+import {anyNft, marketplace} from "@app/components/contract/smartWallet";
 
 export const TrendingCollections: React.FC = () => {
-  const [trending, setTrending] = useState<TrendingActivity[]>([]);
+  const [trending, setTrending] = useState<ActionInfo[]>([]);
+
+  const [auctionList, setAuctionList] = useState<any[]>([]);
 
   const { mobileOnly, isTablet: isTabletOrHigher } = useResponsive();
 
   useEffect(() => {
-    getTrendingActivities().then((res) => setTrending(res));
+    // getTrendingActivities().then((res) => setTrending(res));
+      marketplace.totalAuctions().then((totalActions: BigInt) => {
+          const total = parseInt(totalActions.toString());
+          marketplace.getAllValidAuctions(0, total -1 ).then((auctions: any[]) => {
+             let getAuctions: ActionInfo[] = [];
+                auctions.forEach(async (auction: any) => {
+                    const nftContract = anyNft(auction.assetContract);
+                    const uri = await nftContract.tokenURI(auction.tokenId);
+                    fetch(uri.replace('ipfs://', 'https://ipfs.io/ipfs/')).then((res) => res.json()).then((metadata) => {
+                        const image = metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/');
+                        getAuctions.push({
+                            name: metadata.name,
+                            auctionCreator: auction.auctionCreator,
+                            image: image,
+                            assetContract: auction.assetContract,
+                            tokenId: auction.tokenId,
+                            minimumBidAmount: auction.minimumBidAmount,
+                            buyoutBidAmount: auction.buyoutBidAmount,
+                            avatar: 'https://api.dicebear.com/7.x/croodles/svg?seed=' + auction.auctionCreator
+                        });
+
+                    }).finally(() => {
+                        if(getAuctions.length === total - 1) {
+                            console.log('Settttttttt')
+                            setAuctionList(getAuctions)
+                        }
+                    });
+
+                });
+          });
+      })
   }, []);
 
   const { t } = useTranslation();
 
   const trendingList = useMemo(() => {
+      console.log('auctions: ', auctionList)
     return {
-      mobile: trending.map((item, index) => <TrendingCollection key={index} {...item} />).slice(0, 3),
-      tablet: trending.map((item, index) => (
+      mobile: auctionList.map((item, index) => <TrendingCollection key={index} {...item} />).slice(0, 3),
+      tablet: auctionList.map((item, index) => (
         <div key={index}>
           <S.CardWrapper>
             <TrendingCollection {...item} />
@@ -33,13 +67,13 @@ export const TrendingCollections: React.FC = () => {
         </div>
       )),
     };
-  }, [trending]);
+  }, [auctionList]);
 
   const sliderRef = useRef<Slider>(null);
 
   return (
     <>
-      <NFTCardHeader title={t('nft.trendingCollections')}>
+      <NFTCardHeader title="Market place">
         {isTabletOrHigher && (
           <Row align="middle">
             <Col>
@@ -62,9 +96,9 @@ export const TrendingCollections: React.FC = () => {
       </NFTCardHeader>
 
       <S.SectionWrapper>
-        {mobileOnly && trendingList.mobile}
-
-        {isTabletOrHigher && trending.length > 0 && (
+        {/*{mobileOnly && trendingList.mobile}*/}
+        {/**/}
+        {/*{isTabletOrHigher && trending.length > 0 && (*/}
           <Carousel
             ref={sliderRef}
             slidesToShow={3}
@@ -77,9 +111,18 @@ export const TrendingCollections: React.FC = () => {
               },
             ]}
           >
-            {trendingList.tablet}
+            {auctionList.map((item, index) => {
+                console.log('item: ', item)
+                console.log('index: ', index)
+                return (
+                <div key={index}>
+                    <S.CardWrapper>
+                        <TrendingCollection {...item} />
+                    </S.CardWrapper>
+                </div>
+            )})}
           </Carousel>
-        )}
+        {/*)}*/}
       </S.SectionWrapper>
 
       {mobileOnly && (

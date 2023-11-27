@@ -12,12 +12,15 @@ export interface UserActivity extends Omit<Activity, 'owner'> {
   usd_value: number;
 }
 
-export interface TrendingActivity {
-  title: string;
-  owner: string;
+export interface ActionInfo {
+  name: string;
+  auctionCreator: string;
   image: string;
+  assetContract: string;
+  tokenId: string;
+  minimumBidAmount: bigint;
+  buyoutBidAmount: bigint;
   avatar: string;
-  usd_value: number;
 }
 
 export const getUserActivities = (): Promise<UserActivity[]> => {
@@ -94,51 +97,51 @@ export const getActivities = (): Promise<Activity[]> => {
   });
 };
 
-export const getTrendingActivities = (): Promise<TrendingActivity[]> => {
-  return new Promise((res) => {
-    setTimeout(() => {
-      res([
-        {
-          title: 'TownYTraveler',
-          owner: '@akura',
-          image: process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/unsplash_yhIsPgLfVNU_1_hdauhp.webp',
-          avatar: process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/unsplash_tmRuRPBiPcA_dlpsh0.webp',
-          usd_value: 1045,
-        },
-        {
-          title: 'TownYTraveler',
-          owner: '@akura',
-          image: process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/unsplash_eHUMDkv4q1w_xchurr.webp',
-          avatar: process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/unsplash_Tgq8oggf0EY_mwyjub.webp',
-          usd_value: 1045,
-        },
-        {
-          title: 'TownYTraveler',
-          owner: '@akura',
-          image: process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/unsplash_6JQn1G0lMgY_zqqd7q.webp',
-          avatar: process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/unsplash_nR-rzu8--5M_qwhnht.webp',
-          usd_value: 1045,
-        },
-        {
-          title: 'TownYTraveler',
-          owner: '@akura',
-          image:
-            process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/milad-fakurian-bMSA5-tLFao-unsplash_js8utz.webp',
-          avatar:
-            process.env.REACT_APP_ASSETS_BUCKET +
-            '/lightence-activity/salvatore-andrea-santacroce-wGICoyAhEs4-unsplash_dfo8do.webp',
-          usd_value: 1045,
-        },
-        {
-          title: 'TownYTraveler',
-          owner: '@akura',
-          image:
-            process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/javier-miranda-xB2XP29gn10-unsplash_klwx4d.webp',
-          avatar:
-            process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/simon-lee-hbFKxsIqclc-unsplash_vcv07z.webp',
-          usd_value: 1045,
-        },
-      ]);
-    }, 0);
-  });
-};
+// export const getTrendingActivities = (): Promise<TrendingActivity[]> => {
+//   return new Promise((res) => {
+//     setTimeout(() => {
+//       res([
+//         {
+//           title: 'TownYTraveler',
+//           owner: '@akura',
+//           image: process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/unsplash_yhIsPgLfVNU_1_hdauhp.webp',
+//           avatar: process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/unsplash_tmRuRPBiPcA_dlpsh0.webp',
+//           usd_value: 1045,
+//         },
+//         {
+//           title: 'TownYTraveler',
+//           owner: '@akura',
+//           image: process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/unsplash_eHUMDkv4q1w_xchurr.webp',
+//           avatar: process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/unsplash_Tgq8oggf0EY_mwyjub.webp',
+//           usd_value: 1045,
+//         },
+//         {
+//           title: 'TownYTraveler',
+//           owner: '@akura',
+//           image: process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/unsplash_6JQn1G0lMgY_zqqd7q.webp',
+//           avatar: process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/unsplash_nR-rzu8--5M_qwhnht.webp',
+//           usd_value: 1045,
+//         },
+//         {
+//           title: 'TownYTraveler',
+//           owner: '@akura',
+//           image:
+//             process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/milad-fakurian-bMSA5-tLFao-unsplash_js8utz.webp',
+//           avatar:
+//             process.env.REACT_APP_ASSETS_BUCKET +
+//             '/lightence-activity/salvatore-andrea-santacroce-wGICoyAhEs4-unsplash_dfo8do.webp',
+//           usd_value: 1045,
+//         },
+//         {
+//           title: 'TownYTraveler',
+//           owner: '@akura',
+//           image:
+//             process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/javier-miranda-xB2XP29gn10-unsplash_klwx4d.webp',
+//           avatar:
+//             process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/simon-lee-hbFKxsIqclc-unsplash_vcv07z.webp',
+//           usd_value: 1045,
+//         },
+//       ]);
+//     }, 0);
+//   });
+// };
