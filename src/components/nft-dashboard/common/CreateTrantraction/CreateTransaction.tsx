@@ -13,7 +13,7 @@ import {
     provider
 } from "@app/components/contract/smartWallet";
 import * as process from "process";
-import {setOps} from "@app/store/slices/walletSlice";
+import {setOps, setTransactionExecuted} from "@app/store/slices/walletSlice";
 import {Badge} from "@app/components/common/Badge/Badge";
 import {Avatar} from "@app/components/common/Avatar/Avatar";
 import {Button} from "@app/components/common/buttons/Button/Button";
@@ -141,6 +141,7 @@ export const CreateTransaction: React.FC = () => {
                         alert('Transaction failed')
                     }
                     dispatch(setOps([]));
+                    dispatch(setTransactionExecuted(wallet.transactionExecuted + 1));
                 }}
                 onCancel={() => {
                     setIsTransactionModalVisible(false)
@@ -154,15 +155,18 @@ export const CreateTransaction: React.FC = () => {
     }
     const opsCount = (wallet.ops && wallet.ops.length) || 0
     return (
-        <Badge count={opsCount}>
-            <Button onClick={() => {
-                setIsTransactionProgress(true)
-                if(!localwallet) {
-                    setIsUnlockWalletModalVisible(true)
-                } else {
-                    setIsTransactionModalVisible(true)
-                }
-            }} disabled={!opsCount}>Create transaction</Button>
-        </Badge>
+        <div>
+
+            <Badge count={opsCount}>
+                <Button onClick={() => {
+                    setIsTransactionProgress(true)
+                    if(!localwallet) {
+                        setIsUnlockWalletModalVisible(true)
+                    } else {
+                        setIsTransactionModalVisible(true)
+                    }
+                }} disabled={!opsCount}>Create transaction</Button>
+            </Badge>
+        </div>
     )
 };

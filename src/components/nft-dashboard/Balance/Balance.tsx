@@ -55,6 +55,7 @@ export const Balance: React.FC = () => {
   // const localWallet = useAppSelector((state) => state.wallet.localWallet) as ethers.Wallet;
   const encryptedWallet = useAppSelector((state) => state.wallet.encryptedWallet);
   const ops = useAppSelector((state) => state.wallet.ops);
+  const transactionExecuted = useAppSelector((state) => state.wallet.transactionExecuted);
   useEffect(() => {
     console.log('smartWalletAddress', smartWalletAddress);
     smartWalletAddress && getTokenBalance(smartWalletAddress).then((balance) => {
@@ -89,7 +90,7 @@ export const Balance: React.FC = () => {
         })
       })
   })
-  }, [userId]);
+  }, [transactionExecuted]);
 
   const getNft = async (nftAddress: string) => {
     const nftInEvents = await axios.get(`https://api-testnet.bscscan.com/api?module=logs&action=getLogs&fromBlock=0&toBlock=lastest&address=${nftAddress}&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_2_opr=and&topic2=0x000000000000000000000000${smartWalletAddress.substring(2, smartWalletAddress.length)}&apikey=E8AJ7W87ZG8A6TU46Q4K1ICFU2GK6YMKYR`)

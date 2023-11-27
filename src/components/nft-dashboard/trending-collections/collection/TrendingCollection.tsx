@@ -21,12 +21,13 @@ export const TrendingCollection: React.FC<ActionInfo> = ({ name, auctionCreator,
   const smartWalletAddress = useAppSelector((state) => state.wallet.smartWalletAddress as string);
   const ops = useAppSelector((state) => state.wallet.ops);
   const dispatch = useDispatch();
+  const transactionExecuted = useAppSelector((state) => state.wallet.transactionExecuted);
 
   useEffect(() => {
         marketplace.getWinningBid(auctionId).then((winningBid: any) => {
             setWinningBid(winningBid);
         });
-  }, []);
+  }, [transactionExecuted]);
 
     const createBidOps = async () => {
       const newOps = [];
