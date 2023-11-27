@@ -24,6 +24,7 @@ export interface ActionInfo {
   auctionId: bigint;
   startTimestamp: bigint;
   endTimestamp: bigint;
+  bidBufferBps: bigint;
 }
 
 export const getUserActivities = (): Promise<UserActivity[]> => {

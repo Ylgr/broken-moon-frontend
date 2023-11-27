@@ -41,7 +41,8 @@ export const TrendingCollections: React.FC = () => {
                             avatar: 'https://api.dicebear.com/7.x/croodles/svg?seed=' + auction.auctionCreator,
                             auctionId: auction.auctionId,
                             startTimestamp: auction.startTimestamp,
-                            endTimestamp: auction.endTimestamp
+                            endTimestamp: auction.endTimestamp,
+                            bidBufferBps: auction.bidBufferBps,
                         });
 
                     }).finally(() => {
