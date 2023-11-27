@@ -6,6 +6,7 @@ import {useAppDispatch, useAppSelector} from '@app/hooks/reduxHooks';
 import {getCurrencyPrice} from '@app/utils/utils';
 import * as S from './Balance.styles';
 import {
+  anyNft,
   bicAccountInterface,
   bicRegistrarController,
   bmToken, freeToMintNft,
@@ -82,7 +83,11 @@ export const Balance: React.FC = () => {
       freeToMintNft.totalSupply().then((totalSupply: BigInt) => {
         setCurrentTotalSupplyFreeNft(parseInt(totalSupply.toString()))
       });
-      getNft(freeToMintNft.address)
+      getNft(freeToMintNft.address).then((freeNft) => {
+        getNft('0x5e5aba60b38b8D54Ce37c83dAc8a0F021bE367A9').then((collectionNft) => {
+          setOwnNfts([...freeNft, ...collectionNft])
+        })
+      })
   })
   }, [userId]);
 
@@ -94,13 +99,17 @@ export const Balance: React.FC = () => {
     const nftIds = nftInIds.filter((e: string) => !nftOutIds.includes(e))
     const nfts = []
     for (const id of nftIds) {
-      const uri = await freeToMintNft.tokenURI(id)
-      console.log('uri: ', uri)
+
+      const nftContract = anyNft(nftAddress);
+      const uri = await nftContract.tokenURI(id);
       if(uri.includes('https://raw.githubusercontent.com/Ylgr/seadrop')) {
         nfts.push({address: nftAddress, id: id, image: 'https://api.dicebear.com/7.x/adventurer/svg?seed=beincom-test' + id})
+      } else {
+        const metadata = await axios.get(uri.replace('ipfs://', 'https://ipfs.io/ipfs/'))
+        nfts.push({address: nftAddress, id: id, image: metadata.data.image.replace('ipfs://', 'https://ipfs.io/ipfs/')})
       }
     }
-    setOwnNfts(nfts);
+    return nfts;
   }
 
   const { t } = useTranslation();
@@ -362,7 +371,7 @@ export const Balance: React.FC = () => {
           {previewNftUrls.map((url) => (
               <img src={url} alt="nft" width={100} height={100}/>
             ))}
-          <Button onClick={() => createMintFreeNftOps()} block disabled={!nftMintNumber}>Mint</Button>
+          <Button onClick={() => createMintFreeNftOps()} block disabled={nftMintNumber <= 0}>Mint</Button>
         </Panel>
       </SA.CollapseWrapper>
     </Row>
