@@ -17,10 +17,13 @@ export interface ActionInfo {
   auctionCreator: string;
   image: string;
   assetContract: string;
-  tokenId: string;
+  tokenId: bigint;
   minimumBidAmount: bigint;
   buyoutBidAmount: bigint;
   avatar: string;
+  auctionId: bigint;
+  startTimestamp: bigint;
+  endTimestamp: bigint;
 }
 
 export const getUserActivities = (): Promise<UserActivity[]> => {

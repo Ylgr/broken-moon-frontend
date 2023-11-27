@@ -38,13 +38,15 @@ export const TrendingCollections: React.FC = () => {
                             tokenId: auction.tokenId,
                             minimumBidAmount: auction.minimumBidAmount,
                             buyoutBidAmount: auction.buyoutBidAmount,
-                            avatar: 'https://api.dicebear.com/7.x/croodles/svg?seed=' + auction.auctionCreator
+                            avatar: 'https://api.dicebear.com/7.x/croodles/svg?seed=' + auction.auctionCreator,
+                            auctionId: auction.auctionId,
+                            startTimestamp: auction.startTimestamp,
+                            endTimestamp: auction.endTimestamp
                         });
 
                     }).finally(() => {
-                        if(getAuctions.length === total - 1) {
-                            console.log('Settttttttt')
-                            setAuctionList(getAuctions)
+                        if(getAuctions.length == auctions.length) {
+                            setAuctionList(getAuctions);
                         }
                     });
 

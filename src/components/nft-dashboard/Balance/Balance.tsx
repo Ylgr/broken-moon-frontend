@@ -211,7 +211,7 @@ export const Balance: React.FC = () => {
 
   async function createTransferNftOp() {
     const initCallData = freeToMintNft.interface.encodeFunctionData("transferFrom", [smartWalletAddress, transferAddress, ownNftSelected.id]);
-    const callDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [freeToMintNft.address, ethers.constants.HashZero, initCallData]);
+    const callDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [ownNftSelected.address, ethers.constants.HashZero, initCallData]);
     dispatch(setOps([...(ops || []), {callData: callDataForEntrypoint}]));
   }
   return (
