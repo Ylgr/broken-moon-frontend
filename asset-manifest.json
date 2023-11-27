@@ -6,15 +6,15 @@
     "static/js/1.461ddae0.chunk.js.map": "/broken-moon-frontend/static/js/1.461ddae0.chunk.js.map",
     "static/js/2.bcf190fd.chunk.js": "/broken-moon-frontend/static/js/2.bcf190fd.chunk.js",
     "static/js/2.bcf190fd.chunk.js.map": "/broken-moon-frontend/static/js/2.bcf190fd.chunk.js.map",
-    "main.js": "/broken-moon-frontend/static/js/main.f5ca10ff.chunk.js",
-    "main.js.map": "/broken-moon-frontend/static/js/main.f5ca10ff.chunk.js.map",
-    "runtime-main.js": "/broken-moon-frontend/static/js/runtime-main.5d56dab3.js",
-    "runtime-main.js.map": "/broken-moon-frontend/static/js/runtime-main.5d56dab3.js.map",
+    "main.js": "/broken-moon-frontend/static/js/main.259f0ba1.chunk.js",
+    "main.js.map": "/broken-moon-frontend/static/js/main.259f0ba1.chunk.js.map",
+    "runtime-main.js": "/broken-moon-frontend/static/js/runtime-main.6fc44224.js",
+    "runtime-main.js.map": "/broken-moon-frontend/static/js/runtime-main.6fc44224.js.map",
     "static/css/5.6beffca1.chunk.css": "/broken-moon-frontend/static/css/5.6beffca1.chunk.css",
-    "static/js/5.3aeed5db.chunk.js": "/broken-moon-frontend/static/js/5.3aeed5db.chunk.js",
-    "static/js/5.3aeed5db.chunk.js.map": "/broken-moon-frontend/static/js/5.3aeed5db.chunk.js.map",
-    "static/js/6.fe4f2660.chunk.js": "/broken-moon-frontend/static/js/6.fe4f2660.chunk.js",
-    "static/js/6.fe4f2660.chunk.js.map": "/broken-moon-frontend/static/js/6.fe4f2660.chunk.js.map",
+    "static/js/5.c4804eb0.chunk.js": "/broken-moon-frontend/static/js/5.c4804eb0.chunk.js",
+    "static/js/5.c4804eb0.chunk.js.map": "/broken-moon-frontend/static/js/5.c4804eb0.chunk.js.map",
+    "static/js/6.43af9377.chunk.js": "/broken-moon-frontend/static/js/6.43af9377.chunk.js",
+    "static/js/6.43af9377.chunk.js.map": "/broken-moon-frontend/static/js/6.43af9377.chunk.js.map",
     "static/js/7.93138163.chunk.js": "/broken-moon-frontend/static/js/7.93138163.chunk.js",
     "static/js/7.93138163.chunk.js.map": "/broken-moon-frontend/static/js/7.93138163.chunk.js.map",
     "static/js/8.28ddafb5.chunk.js": "/broken-moon-frontend/static/js/8.28ddafb5.chunk.js",
@@ -125,8 +125,8 @@
     "service-worker.js.map": "/broken-moon-frontend/service-worker.js.map",
     "static/css/5.6beffca1.chunk.css.map": "/broken-moon-frontend/static/css/5.6beffca1.chunk.css.map",
     "static/css/9.9cd763e9.chunk.css.map": "/broken-moon-frontend/static/css/9.9cd763e9.chunk.css.map",
-    "static/js/5.3aeed5db.chunk.js.LICENSE.txt": "/broken-moon-frontend/static/js/5.3aeed5db.chunk.js.LICENSE.txt",
-    "static/js/6.fe4f2660.chunk.js.LICENSE.txt": "/broken-moon-frontend/static/js/6.fe4f2660.chunk.js.LICENSE.txt",
+    "static/js/5.c4804eb0.chunk.js.LICENSE.txt": "/broken-moon-frontend/static/js/5.c4804eb0.chunk.js.LICENSE.txt",
+    "static/js/6.43af9377.chunk.js.LICENSE.txt": "/broken-moon-frontend/static/js/6.43af9377.chunk.js.LICENSE.txt",
     "static/media/Table.2a1d53da.less": "/broken-moon-frontend/static/media/Table.2a1d53da.less",
     "static/media/bnb.797868eb.svg": "/broken-moon-frontend/static/media/bnb.797868eb.svg",
     "static/media/bones.aab56976.svg": "/broken-moon-frontend/static/media/bones.aab56976.svg",
@@ -152,9 +152,9 @@
     "static/media/water.d19010da.svg": "/broken-moon-frontend/static/media/water.d19010da.svg"
   },
   "entrypoints": [
-    "static/js/runtime-main.5d56dab3.js",
+    "static/js/runtime-main.6fc44224.js",
     "static/css/5.6beffca1.chunk.css",
-    "static/js/5.3aeed5db.chunk.js",
-    "static/js/main.f5ca10ff.chunk.js"
+    "static/js/5.c4804eb0.chunk.js",
+    "static/js/main.259f0ba1.chunk.js"
   ]
 }
