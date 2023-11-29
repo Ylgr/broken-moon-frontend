@@ -37,6 +37,8 @@ export const Balance: React.FC = () => {
   });
   const [isTransferModalVisible, setIsTransferModalVisible] = useState<boolean>(false);
   const [isTransferNftModalVisible, setIsTransferNftModalVisible] = useState<boolean>(false);
+  const [isNftActionModalVisible, setIsNftActionModalVisible] = useState<boolean>(false);
+  const [isNftAuctionModalVisible, setIsNftAuctionModalVisible] = useState<boolean>(false);
   const [transferToken, setTransferToken] = useState<string>(bmToken.address);
   const [transferAddress, setTransferAddress] = useState<string>('0xeaBcd21B75349c59a4177E10ed17FBf2955fE697');
   const [transferAmount, setTransferAmount] = useState<string>('100');
@@ -274,7 +276,7 @@ export const Balance: React.FC = () => {
                       {ownNfts.map((nft) => (
                           <img src={nft.image} alt="nft" width={100} height={100} onClick={() => {
                             setOwnNftSelected(nft)
-                            setIsTransferNftModalVisible(true)
+                            setIsNftActionModalVisible(true)
                           }}/>
                         ))}
                     </Col>
@@ -336,6 +338,7 @@ export const Balance: React.FC = () => {
                 }}
                 onCancel={() => setIsTransferNftModalVisible(false)}
             >
+              <img src={ownNftSelected.image} alt={ownNftSelected.id}/>
 
               <p>{t('modals.toAddress')}</p>
               <Input value={transferAddress} onChange={(e) => {
@@ -347,7 +350,57 @@ export const Balance: React.FC = () => {
                   setTransferAddress(e.target.value)
                 }
               }}/>
+            </Modal>
+            <Modal
+                title="NFT actions"
+                visible={isNftActionModalVisible}
+                onOk={() => {
+                  setIsNftAuctionModalVisible(false)
+                }}
+                onCancel={() => setIsNftActionModalVisible(false)}
+            >
+              <Button onClick={() => {
+                setIsTransferNftModalVisible(true)
+                setIsNftActionModalVisible(false)
+              }}>Transfer</Button>
+                <Button onClick={() => {
+                  setIsNftAuctionModalVisible(true)
+                  setIsNftActionModalVisible(false)
+                }}>Auction</Button>
+            </Modal>
+            <Modal
+                title="NFT auction"
+                visible={isNftAuctionModalVisible}
+                onOk={() => {
+                  setIsNftAuctionModalVisible(false)
+                }}
+                onCancel={() => setIsNftAuctionModalVisible(false)}
+            >
               <img src={ownNftSelected.image} alt={ownNftSelected.id}/>
+
+              <p>Listing Currency</p>
+              <Dropdown overlay={positionMenu} trigger={['click']}>
+                <Button onClick={(e) => e.preventDefault()}>
+                  {/*Broken Moon <DownOutlined />*/}
+                  Beincom <DownOutlined />
+                </Button>
+              </Dropdown>
+
+              <p>Start price per token</p>
+              <Input type="number" />
+
+              <p>Buyout price per token</p>
+              <Input type="number" />
+              <p>Quality</p>
+              <Input value="1" />
+
+              <p>Auction duration</p>
+              <Dropdown overlay={positionMenu} trigger={['click']}>
+                <Button onClick={(e) => e.preventDefault()}>
+                  {/*Broken Moon <DownOutlined />*/}
+                  1 month <DownOutlined />
+                </Button>
+              </Dropdown>
             </Modal>
           </Row>
         </NFTCard>
