@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Col, Row} from 'antd';
 import {useTranslation} from 'react-i18next';
 import {NFTCard} from '@app/components/nft-dashboard/common/NFTCard/NFTCard';
@@ -15,7 +15,7 @@ import {
 import {P1} from "@app/components/common/typography/P1/P1";
 import {Modal} from "@app/components/common/Modal/Modal";
 import {Button} from "@app/components/common/buttons/Button/Button";
-import {DownOutlined} from "@ant-design/icons";
+import {DownOutlined, LeftOutlined, RightOutlined} from "@ant-design/icons";
 import {Dropdown} from "@app/components/common/Dropdown/Dropdown";
 import {Menu} from "@app/components/common/Menu/Menu";
 import {Input} from "@app/components/common/inputs/Input/Input";
@@ -26,6 +26,11 @@ import {Panel} from "@app/components/common/Collapse/Collapse";
 import * as SA from '@app/pages/uiComponentsPages//UIComponentsPage.styles';
 import axios from 'axios';
 import dayjs from "dayjs";
+import {Carousel} from "@app/components/common/Carousel/Carousel";
+import Slider from "react-slick";
+import {NFTCardHeader} from "@app/components/nft-dashboard/common/NFTCardHeader/NFTCardHeader";
+import {ViewAll} from "@app/components/nft-dashboard/common/ViewAll/ViewAll";
+import {ArrowBtn} from "@app/components/nft-dashboard/recently-added/RecentlyAddedNft.styles";
 
 // @ts-ignore
 // @ts-ignore
@@ -96,6 +101,7 @@ export const Balance: React.FC = () => {
       })
   })
   }, [transactionExecuted]);
+  const sliderRef = useRef<Slider>(null);
 
   const getNft = async (nftAddress: string) => {
     const nftInEvents = await axios.get(`https://api-testnet.bscscan.com/api?module=logs&action=getLogs&fromBlock=0&toBlock=lastest&address=${nftAddress}&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_2_opr=and&topic2=0x000000000000000000000000${smartWalletAddress.substring(2, smartWalletAddress.length)}&apikey=E8AJ7W87ZG8A6TU46Q4K1ICFU2GK6YMKYR`)
@@ -307,13 +313,44 @@ export const Balance: React.FC = () => {
                 <Col span={24}>
                   <Row gutter={[14, 14]}>
                     <Col span={24}>
-                      <p>NFT:</p>
+                      <NFTCardHeader title="NFT">
+                            <Row align="middle">
+                              <Col>
+                                <ViewAll bordered={false} />
+                              </Col>
+
+                              <Col>
+                                <ArrowBtn type="text" size="small" onClick={() => sliderRef.current && sliderRef.current.slickPrev()}>
+                                  <LeftOutlined />
+                                </ArrowBtn>
+                              </Col>
+
+                              <Col>
+                                <ArrowBtn type="text" size="small" onClick={() => sliderRef.current && sliderRef.current.slickNext()}>
+                                  <RightOutlined />
+                                </ArrowBtn>
+                              </Col>
+                            </Row>
+                      </NFTCardHeader>
+                      <Carousel
+                          ref={sliderRef}
+                          slidesToShow={ownNfts.length > 3 ? 3 : ownNfts.length}
+                          responsive={[
+                            {
+                              breakpoint: 1900,
+                              settings: {
+                                slidesToShow: 2,
+                              },
+                            },
+                          ]}
+                      >
                       {ownNfts.map((nft) => (
                           <img src={nft.image} alt="nft" width={100} height={100} onClick={() => {
                             setOwnNftSelected(nft)
                             setIsNftActionModalVisible(true)
                           }}/>
                         ))}
+                      </Carousel>
                     </Col>
                   </Row>
                 </Col>

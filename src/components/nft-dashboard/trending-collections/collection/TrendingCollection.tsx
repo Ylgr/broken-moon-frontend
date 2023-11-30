@@ -22,7 +22,6 @@ export const TrendingCollection: React.FC<ActionInfo> = ({ name, auctionCreator,
   const ops = useAppSelector((state) => state.wallet.ops);
   const dispatch = useDispatch();
   const transactionExecuted = useAppSelector((state) => state.wallet.transactionExecuted);
-  console.log('bidBufferBps: ', bidBufferBps.toString());
   useEffect(() => {
         marketplace.getWinningBid(auctionId).then((winningBid: any) => {
             setWinningBid(winningBid);

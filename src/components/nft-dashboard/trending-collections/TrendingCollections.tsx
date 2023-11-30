@@ -59,7 +59,6 @@ export const TrendingCollections: React.FC = () => {
   const { t } = useTranslation();
 
   const trendingList = useMemo(() => {
-      console.log('auctions: ', auctionList)
     return {
       mobile: auctionList.map((item, index) => <TrendingCollection key={index} {...item} />).slice(0, 3),
       tablet: auctionList.map((item, index) => (
@@ -115,8 +114,6 @@ export const TrendingCollections: React.FC = () => {
             ]}
           >
             {auctionList.map((item, index) => {
-                console.log('item: ', item)
-                console.log('index: ', index)
                 return (
                 <div key={index}>
                     <S.CardWrapper>
