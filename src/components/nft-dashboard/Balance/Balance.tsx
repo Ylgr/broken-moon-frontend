@@ -10,7 +10,7 @@ import {
   bicAccountInterface,
   bicRegistrarController,
   bmToken, freeToMintNft,
-  getTokenBalance, nameWrapper
+  getTokenBalance, marketplace, nameWrapper
 } from "@app/components/contract/smartWallet";
 import {P1} from "@app/components/common/typography/P1/P1";
 import {Modal} from "@app/components/common/Modal/Modal";
@@ -19,12 +19,13 @@ import {DownOutlined} from "@ant-design/icons";
 import {Dropdown} from "@app/components/common/Dropdown/Dropdown";
 import {Menu} from "@app/components/common/Menu/Menu";
 import {Input} from "@app/components/common/inputs/Input/Input";
-import {ethers} from "ethers";
+import {BigNumber, ethers} from "ethers";
 import {setIsPayAsToken, setOps} from "@app/store/slices/walletSlice";
 import {Switch} from "@app/components/common/Switch/Switch";
 import {Panel} from "@app/components/common/Collapse/Collapse";
 import * as SA from '@app/pages/uiComponentsPages//UIComponentsPage.styles';
 import axios from 'axios';
+import dayjs from "dayjs";
 
 // @ts-ignore
 // @ts-ignore
@@ -51,6 +52,8 @@ export const Balance: React.FC = () => {
   const [nftMintNumber, setNftMintNumber] = useState<number>(0);
   const [previewNftUrls, setPreviewNftUrls] = useState<string[]>([]);
   const [currentTotalSupplyFreeNft, setCurrentTotalSupplyFreeNft] = useState<number>(0);
+  const [auctionStartPrice, setAuctionStartPrice] = useState<BigNumber>(ethers.utils.parseEther("100"));
+  const [auctionBuyoutPrice, setAuctionBuyoutPrice] = useState<BigNumber>(ethers.utils.parseEther("1000"));
   const userId = useAppSelector((state) => state.user.user?.id);
   const { theme } = useAppSelector((state) => state.theme);
   const smartWalletAddress = useAppSelector((state) => state.wallet.smartWalletAddress as string);
@@ -217,6 +220,38 @@ export const Balance: React.FC = () => {
     const callDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [ownNftSelected.address, ethers.constants.HashZero, initCallData]);
     dispatch(setOps([...(ops || []), {callData: callDataForEntrypoint}]));
   }
+
+  async function createAuctionOp() {
+    const newOps = [];
+    const nftContract = anyNft(ownNftSelected.address);
+    const isApproved = await nftContract.isApprovedForAll(smartWalletAddress, marketplace.address)
+    console.log('isApproved: ', isApproved)
+    if(!isApproved) {
+        const initApproveCallData = nftContract.interface.encodeFunctionData("setApprovalForAll", [marketplace.address, true]);
+        const callApproveDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [ownNftSelected.address, ethers.constants.HashZero, initApproveCallData]);
+        newOps.push({callData: callApproveDataForEntrypoint});
+    }
+    const now = dayjs()
+    // const initCallData = marketplace.interface.encodeFunctionData("createAuction", [[ownNftSelected.address, ownNftSelected.id, 1, bmToken.address, auctionStartPrice, auctionBuyoutPrice, 900, 500, now.unix(), now.add(1, 'month').unix()]]);
+    const initCallData = marketplace.interface.encodeFunctionData("createAuction", [
+      {
+        assetContract: ownNftSelected.address,
+        tokenId: ownNftSelected.id,
+        quantity: 1,
+        currency: bmToken.address,
+        minimumBidAmount: auctionStartPrice,
+        buyoutBidAmount: auctionBuyoutPrice,
+        timeBufferInSeconds: 900,
+        bidBufferBps: 500,
+        startTimestamp: now.unix(),
+        endTimestamp: now.add(1, 'month').unix()
+      }
+    ]);
+    const callDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [marketplace.address, ethers.constants.HashZero, initCallData]);
+    newOps.push({callData: callDataForEntrypoint});
+    dispatch(setOps([...(ops || []), ...newOps]));
+  }
+
   return (
     <Row>
       <Col span={24}>
@@ -372,6 +407,7 @@ export const Balance: React.FC = () => {
                 title="NFT auction"
                 visible={isNftAuctionModalVisible}
                 onOk={() => {
+                  createAuctionOp()
                   setIsNftAuctionModalVisible(false)
                 }}
                 onCancel={() => setIsNftAuctionModalVisible(false)}
@@ -387,10 +423,10 @@ export const Balance: React.FC = () => {
               </Dropdown>
 
               <p>Start price per token</p>
-              <Input type="number" />
+              <Input type="number" value={parseInt(ethers.utils.formatEther(auctionStartPrice))} onChange={(event) => setAuctionStartPrice(ethers.utils.parseEther(event.target.value))} />
 
               <p>Buyout price per token</p>
-              <Input type="number" />
+              <Input type="number" value={parseInt(ethers.utils.formatEther(auctionBuyoutPrice))} onChange={(event) => setAuctionBuyoutPrice(ethers.utils.parseEther(event.target.value))} />
               <p>Quality</p>
               <Input value="1" />
 
