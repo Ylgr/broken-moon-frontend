@@ -20,7 +20,7 @@ import {Dropdown} from "@app/components/common/Dropdown/Dropdown";
 import {Menu} from "@app/components/common/Menu/Menu";
 import {Input} from "@app/components/common/inputs/Input/Input";
 import {BigNumber, ethers} from "ethers";
-import {setIsPayAsToken, setOps} from "@app/store/slices/walletSlice";
+import {setIsPayAsToken, setOps, setOpsDetails} from "@app/store/slices/walletSlice";
 import {Switch} from "@app/components/common/Switch/Switch";
 import {Panel} from "@app/components/common/Collapse/Collapse";
 import * as SA from '@app/pages/uiComponentsPages//UIComponentsPage.styles';
@@ -66,6 +66,8 @@ export const Balance: React.FC = () => {
   const encryptedWallet = useAppSelector((state) => state.wallet.encryptedWallet);
   const ops = useAppSelector((state) => state.wallet.ops);
   const transactionExecuted = useAppSelector((state) => state.wallet.transactionExecuted);
+  const opsDetails = useAppSelector((state) => state.wallet.opsDetails);
+
   useEffect(() => {
     console.log('smartWalletAddress', smartWalletAddress);
     smartWalletAddress && getTokenBalance(smartWalletAddress).then((balance) => {
@@ -137,6 +139,14 @@ export const Balance: React.FC = () => {
     const initCallData = bmToken.interface.encodeFunctionData("transfer", [transferAddress as any, ethers.utils.parseEther(transferAmount) as any]);
     const callDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [transferToken, ethers.constants.HashZero, initCallData]);
     dispatch(setOps([...(ops || []), {callData: callDataForEntrypoint}]));
+    dispatch(setOpsDetails([...opsDetails, {
+      actionName: 'transfer token',
+      actionStep: 'transfer',
+      asset: 'BIC',
+      amount: transferAmount,
+      toAddress: transferAddress,
+      note: ''
+    }]))
   }
 
   const positionMenu = (
@@ -178,6 +188,7 @@ export const Balance: React.FC = () => {
         return;
     }
     let newOps: any[] = [];
+    let newOpsDetails: any[] = [];
     const MAX_EXPIRY: bigint = BigInt("18446744073709551615");
     const secret =
         '0x0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF'
@@ -196,18 +207,44 @@ export const Balance: React.FC = () => {
     const initCallData = bicRegistrarController.interface.encodeFunctionData("commit", [commitment]);
     const callDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [bicRegistrarController.address, ethers.constants.HashZero, initCallData]);
     newOps.push({callData: callDataForEntrypoint});
+    newOpsDetails.push({
+      actionName: 'register namespace',
+      actionStep: 'commit',
+      asset: 'BIC',
+      amount: namespacePrice,
+      toAddress: bicRegistrarController.address,
+      note: ''
+    })
 
     const fee = ethers.utils.parseEther(namespacePrice);
     if(await bmToken.allowance(smartWalletAddress, bicRegistrarController.address) < fee) {
       const initApproveCallData = bmToken.interface.encodeFunctionData("approve", [bicRegistrarController.address, ethers.constants.MaxUint256]);
         const callApproveDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [bmToken.address, ethers.constants.HashZero, initApproveCallData]);
       newOps.push({callData: callApproveDataForEntrypoint});
+      newOpsDetails.push({
+        actionName: 'register namespace',
+        actionStep: 'approve',
+        asset: 'BIC',
+        amount: 'MaxUint256',
+        toAddress: bicRegistrarController.address,
+        note: 'Only need first time'
+      })
+
     }
     const initRegisterCallData = bicRegistrarController.interface.encodeFunctionData("register", [namespaceName, smartWalletAddress, REGISTRATION_TIME, secret, resolverAddress, [], false, 0, MAX_EXPIRY, fee]);
     const callRegisterDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [bicRegistrarController.address, ethers.constants.HashZero, initRegisterCallData]);
     newOps.push({callData: callRegisterDataForEntrypoint});
+    newOpsDetails.push({
+      actionName: 'register namespace',
+      actionStep: 'register',
+      asset: 'BIC',
+      amount: namespacePrice,
+      toAddress: bicRegistrarController.address,
+      note: ''
+    })
     console.log('newOps: ', newOps)
     dispatch(setOps([...(ops || []), ...newOps]));
+    dispatch(setOpsDetails([...opsDetails, ...newOpsDetails]))
   }
 
   async function createMintFreeNftOps() {
@@ -219,16 +256,33 @@ export const Balance: React.FC = () => {
     const initCallData = freeToMintNft.interface.encodeFunctionData("mint", [smartWalletAddress,nftMintNumber]);
     const callDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [freeToMintNft.address, ethers.constants.HashZero, initCallData]);
     dispatch(setOps([...(ops || []), {callData: callDataForEntrypoint}]));
+    dispatch(setOpsDetails([...opsDetails, {
+      actionName: 'mint free nft',
+        actionStep: 'mint',
+        asset: 'Free nft',
+        amount: nftMintNumber.toString(),
+        toAddress: freeToMintNft.address,
+        note: ''
+    }]));
   }
 
   async function createTransferNftOp() {
     const initCallData = freeToMintNft.interface.encodeFunctionData("transferFrom", [smartWalletAddress, transferAddress, ownNftSelected.id]);
     const callDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [ownNftSelected.address, ethers.constants.HashZero, initCallData]);
     dispatch(setOps([...(ops || []), {callData: callDataForEntrypoint}]));
+    dispatch(setOpsDetails([...opsDetails, {
+      actionName: 'transfer nft',
+      actionStep: 'transfer',
+      asset: `address: ${ownNftSelected.address}, id: ${ownNftSelected.id}`,
+      amount: '1',
+      toAddress: transferAddress,
+      note: ''
+    }]));
   }
 
   async function createAuctionOp() {
     const newOps = [];
+    const newOpsDetails = [];
     const nftContract = anyNft(ownNftSelected.address);
     const isApproved = await nftContract.isApprovedForAll(smartWalletAddress, marketplace.address)
     console.log('isApproved: ', isApproved)
@@ -236,6 +290,14 @@ export const Balance: React.FC = () => {
         const initApproveCallData = nftContract.interface.encodeFunctionData("setApprovalForAll", [marketplace.address, true]);
         const callApproveDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [ownNftSelected.address, ethers.constants.HashZero, initApproveCallData]);
         newOps.push({callData: callApproveDataForEntrypoint});
+        newOpsDetails.push({
+          actionName: 'create auction',
+          actionStep: 'approve',
+          asset: `address: ${ownNftSelected.address}`,
+          amount: 'MaxUint256',
+          toAddress: marketplace.address,
+          note: 'Only need first time'
+        })
     }
     const now = dayjs()
     // const initCallData = marketplace.interface.encodeFunctionData("createAuction", [[ownNftSelected.address, ownNftSelected.id, 1, bmToken.address, auctionStartPrice, auctionBuyoutPrice, 900, 500, now.unix(), now.add(1, 'month').unix()]]);
@@ -255,7 +317,16 @@ export const Balance: React.FC = () => {
     ]);
     const callDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [marketplace.address, ethers.constants.HashZero, initCallData]);
     newOps.push({callData: callDataForEntrypoint});
+    newOpsDetails.push({
+      actionName: 'create auction',
+      actionStep: 'create',
+      asset: `address: ${ownNftSelected.address}, id: ${ownNftSelected.id}`,
+      amount: '1',
+      toAddress: marketplace.address,
+      note: ''
+    })
     dispatch(setOps([...(ops || []), ...newOps]));
+    dispatch(setOpsDetails([...opsDetails, ...newOpsDetails]));
   }
 
   return (
@@ -460,10 +531,22 @@ export const Balance: React.FC = () => {
               </Dropdown>
 
               <p>Start price per token</p>
-              <Input type="number" value={parseInt(ethers.utils.formatEther(auctionStartPrice))} onChange={(event) => setAuctionStartPrice(ethers.utils.parseEther(event.target.value))} />
+              <Input type="number" value={parseInt(ethers.utils.formatEther(auctionStartPrice))} onChange={(event) => {
+                if(event.target.value == '') {
+                  setAuctionStartPrice(ethers.utils.parseEther('0'))
+                } else {
+                  setAuctionStartPrice(ethers.utils.parseEther(event.target.value))
+                }
+              }} />
 
               <p>Buyout price per token</p>
-              <Input type="number" value={parseInt(ethers.utils.formatEther(auctionBuyoutPrice))} onChange={(event) => setAuctionBuyoutPrice(ethers.utils.parseEther(event.target.value))} />
+              <Input type="number" value={parseInt(ethers.utils.formatEther(auctionBuyoutPrice))} onChange={(event) => {
+                if(event.target.value == '') {
+                  setAuctionBuyoutPrice(ethers.utils.parseEther('0'))
+                } else {
+                  setAuctionBuyoutPrice(ethers.utils.parseEther(event.target.value))
+                }
+              }} />
               <p>Quality</p>
               <Input value="1" />
 

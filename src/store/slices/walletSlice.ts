@@ -2,11 +2,21 @@ import {createAction, createSlice} from "@reduxjs/toolkit";
 import { ethers } from "ethers"
 import {readEncryptedWallet, readSmartWalletAddress} from "@app/services/localStorage.service";
 
+export interface OpDetails {
+    actionName: string;
+    actionStep: string;
+    asset: string;
+    amount: string;
+    toAddress: string;
+    note: string;
+}
+
 export interface WalletState {
     localWallet: ethers.Wallet | null;
     encryptedWallet: string | null;
     smartWalletAddress: string | null;
     ops: any;
+    opsDetails: OpDetails[];
     isPayAsToken: boolean;
     transactionExecuted: number;
 }
@@ -16,6 +26,7 @@ const initialState: WalletState = {
     encryptedWallet: readEncryptedWallet(),
     smartWalletAddress: readSmartWalletAddress(),
     ops: null,
+    opsDetails: [],
     isPayAsToken: false,
     transactionExecuted: 0,
 };
@@ -56,6 +67,12 @@ export const setTransactionExecuted = createAction('wallet/setTransactionExecute
     };
 });
 
+export const setOpsDetails = createAction('wallet/setOpsDetails', (opsDetails: OpDetails[]) => {
+    return {
+        payload: opsDetails,
+    };
+});
+
 export const walletSlice = createSlice({
     name: 'wallet',
     initialState,
@@ -78,6 +95,9 @@ export const walletSlice = createSlice({
         });
         builder.addCase(setTransactionExecuted, (state, action) => {
             state.transactionExecuted = action.payload;
+        });
+        builder.addCase(setOpsDetails, (state, action) => {
+            state.opsDetails = action.payload;
         });
     }
 });

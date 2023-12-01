@@ -12,7 +12,7 @@ import * as dayjs from 'dayjs'
 import {bicAccountInterface, bmToken, marketplace} from "@app/components/contract/smartWallet";
 import {useAppSelector} from "@app/hooks/reduxHooks";
 import {useDispatch} from "react-redux";
-import {setOps} from "@app/store/slices/walletSlice";
+import {setOps, setOpsDetails} from "@app/store/slices/walletSlice";
 export const TrendingCollection: React.FC<ActionInfo> = ({ name, auctionCreator, minimumBidAmount, buyoutBidAmount, image, avatar, auctionId, startTimestamp, endTimestamp, bidBufferBps }) => {
   const { t } = useTranslation();
   const [isBid, setIsBid] = React.useState(false);
@@ -22,6 +22,7 @@ export const TrendingCollection: React.FC<ActionInfo> = ({ name, auctionCreator,
   const ops = useAppSelector((state) => state.wallet.ops);
   const dispatch = useDispatch();
   const transactionExecuted = useAppSelector((state) => state.wallet.transactionExecuted);
+  const opsDetails = useAppSelector((state) => state.wallet.opsDetails);
   useEffect(() => {
         marketplace.getWinningBid(auctionId).then((winningBid: any) => {
             setWinningBid(winningBid);
@@ -30,15 +31,33 @@ export const TrendingCollection: React.FC<ActionInfo> = ({ name, auctionCreator,
 
     const createBidOps = async () => {
       const newOps = [];
+      const newOpsDetails = [];
       if(await bmToken.allowance(smartWalletAddress, marketplace.address) < bidAmount) {
         const initApproveCallData = bmToken.interface.encodeFunctionData("approve", [marketplace.address, ethers.constants.MaxUint256]);
         const callApproveDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [bmToken.address, ethers.constants.HashZero, initApproveCallData]);
         newOps.push({callData: callApproveDataForEntrypoint});
+        newOpsDetails.push({
+          actionName: 'create bid',
+          actionStep: 'approve',
+          asset: 'BIC',
+          amount: 'MaxUint256',
+          toAddress: marketplace.address,
+          note: 'only need one time'
+        });
       }
         const initBidCallData = marketplace.interface.encodeFunctionData("bidInAuction", [auctionId, bidAmount]);
         const callBidDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [marketplace.address, ethers.constants.HashZero, initBidCallData]);
         newOps.push({callData: callBidDataForEntrypoint});
+        newOpsDetails.push({
+          actionName: 'create bid',
+          actionStep: 'bid',
+          asset: 'BIC',
+          amount: ethers.utils.formatEther(bidAmount),
+          toAddress: marketplace.address,
+          note: ''
+        });
         dispatch(setOps([...(ops || []), ...newOps]));
+        dispatch(setOpsDetails([...opsDetails, ...newOpsDetails]));
     }
 
   return (
@@ -53,7 +72,13 @@ export const TrendingCollection: React.FC<ActionInfo> = ({ name, auctionCreator,
             <p>Current winning bid: {winningBid._bidder.substring(0, 4) + '...' + winningBid._bidder.substring(winningBid._bidder.length - 4)}</p>
             <p>Current winning bid amount: {parseInt(ethers.utils.formatEther(winningBid._bidAmount))}</p>
             <p>Bid amount (step {parseInt(bidBufferBps.toString()) / 10_000}%): </p>
-            <Input type="number" value={parseInt(ethers.utils.formatEther(bidAmount))} onChange={(event) => setBidAmount(ethers.utils.parseEther(event.target.value).toBigInt())}/>
+            <Input type="number" value={parseInt(ethers.utils.formatEther(bidAmount))} onChange={(event) => {
+              if(event.target.value == '') {
+                setBidAmount(ethers.utils.parseEther('0').toBigInt())
+              } else {
+                setBidAmount(ethers.utils.parseEther(event.target.value).toBigInt())
+              }
+            }}/>
             <Button onClick={() => {
               createBidOps();
               setIsBid(false)

@@ -17,6 +17,7 @@ import {setOps, setTransactionExecuted} from "@app/store/slices/walletSlice";
 import {Badge} from "@app/components/common/Badge/Badge";
 import {Avatar} from "@app/components/common/Avatar/Avatar";
 import {Button} from "@app/components/common/buttons/Button/Button";
+import {Table} from "@app/components/common/Table/Table";
 
 export const CreateTransaction: React.FC = () => {
     const wallet = useAppSelector((state) => state.wallet);
@@ -38,6 +39,7 @@ export const CreateTransaction: React.FC = () => {
     // const beneficiary = '0xB044d9c27e5AF0407df0FEAC0Da4bBd078C4a338'
     if(isTransactionProgress) {
         const executeOps = Object.assign([], wallet.ops);
+        const opsDetails = Object.assign([], wallet.opsDetails);
         console.log('lets goooooooooooooooo!')
         if(!localwallet) {
             return (
@@ -75,9 +77,25 @@ export const CreateTransaction: React.FC = () => {
                 const initTransferCallData = bmToken.interface.encodeFunctionData("transfer", [paymasterAddress, ethers.utils.parseEther("1")]);
                 const callTransferDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [bmToken.address, ethers.constants.HashZero, initTransferCallData]);
                 executeOps.unshift({callData: callTransferDataForEntrypoint, paymasterAndData: '0x'});
+                opsDetails.unshift({
+                    actionName: 'create wallet',
+                    actionStep: 'transfer',
+                    asset: 'BIC',
+                    amount: '1',
+                    toAddress: paymasterAddress,
+                    note: '1 BIC is fee to create wallet'
+                });
                 const initApproveCallData = bmToken.interface.encodeFunctionData("approve", [paymasterAddress, ethers.constants.MaxUint256]);
                 const callApproveDataForEntrypoint = bicAccountInterface.encodeFunctionData("execute", [bmToken.address, ethers.constants.HashZero, initApproveCallData]);
                 executeOps.unshift({callData: callApproveDataForEntrypoint, paymasterAndData: '0x'});
+                opsDetails.unshift({
+                    actionName: 'create wallet',
+                    actionStep: 'approve',
+                    asset: 'BIC',
+                    amount: 'MaxUint256',
+                    toAddress: paymasterAddress,
+                    note: 'only need one time'
+                });
 
                 const initCreateAccountCallData = bicAccountFactory.interface.encodeFunctionData("createAccount", [localwallet.address as any, ethers.constants.HashZero]);
                 const initCode = ethers.utils.solidityPack(
@@ -85,7 +103,16 @@ export const CreateTransaction: React.FC = () => {
                     [ethers.utils.solidityPack(["bytes"], [bicAccountFactory.address]), initCreateAccountCallData]
                 );
                 executeOps.unshift({initCode, callData: '0x', paymasterAndData: '0x'});
+                opsDetails.unshift({
+                    actionName: 'create wallet',
+                    actionStep: 'create account',
+                    asset: 'BIC',
+                    amount: '0',
+                    toAddress: bicAccountFactory.address,
+                    note: ''
+                });
             }
+            console.log('opsDetails: ', opsDetails);
             return (<Modal
                 title="Create transaction"
                 visible={isTransactionModalVisible}
@@ -149,6 +176,38 @@ export const CreateTransaction: React.FC = () => {
                 }}
             >
                 <p>Create transaction?</p>
+                <Table
+                    columns={[
+                        {
+                            title: 'actionName',
+                            dataIndex: 'actionName',
+                        },
+                        {
+                            title: 'actionStep',
+                            dataIndex: 'actionStep',
+                        },
+                        {
+                            title: 'asset',
+                            dataIndex: 'asset',
+                        },
+                        {
+                            title: 'amount',
+                            dataIndex: 'amount',
+                        },
+                        {
+                            title: 'toAddress',
+                            dataIndex: 'toAddress',
+                        },
+                        {
+                            title: 'note',
+                            dataIndex: 'note',
+                        }
+                    ]}
+                    dataSource={opsDetails}
+                    loading={false}
+                    scroll={{ x: 800 }}
+                    bordered
+                />
                 {txs.map((tx: string) => <a href={'https://testnet.bscscan.com/tx/' + tx} target="_blank">Transaction hash  -  </a>)}
             </Modal>)
         }
