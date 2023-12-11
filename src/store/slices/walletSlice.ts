@@ -27,7 +27,7 @@ const initialState: WalletState = {
     smartWalletAddress: readSmartWalletAddress(),
     ops: null,
     opsDetails: [],
-    isPayAsToken: false,
+    isPayAsToken: true,
     transactionExecuted: 0,
 };
 

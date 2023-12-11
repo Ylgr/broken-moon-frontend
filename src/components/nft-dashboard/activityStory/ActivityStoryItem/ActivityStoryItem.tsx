@@ -4,10 +4,9 @@ import { useTranslation } from 'react-i18next';
 import { activityStatuses } from '@app/constants/config/activityStatuses';
 import { UserActivity } from '@app/api/activity.api';
 import { Dates } from '@app/constants/Dates';
-import { formatNumberWithCommas, getCurrencyPrice } from '@app/utils/utils';
 import * as S from './ActivityStoryItem.styles';
 
-export const ActivityStoryItem: React.FC<UserActivity> = ({ image, title, status, date, usd_value }) => {
+export const ActivityStoryItem: React.FC<UserActivity> = ({ image, title, status, date, target }) => {
   const { t } = useTranslation();
 
   const currentStatus = activityStatuses.find((configStatus) => configStatus.name === status);
@@ -39,7 +38,7 @@ export const ActivityStoryItem: React.FC<UserActivity> = ({ image, title, status
               </Col>
 
               <Col span={24}>
-                <S.Text>{getCurrencyPrice(formatNumberWithCommas(usd_value), 'USD')}</S.Text>
+                <S.Text>{target}</S.Text>
               </Col>
             </Row>
           </Col>

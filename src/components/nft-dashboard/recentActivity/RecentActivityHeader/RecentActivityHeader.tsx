@@ -21,7 +21,7 @@ export const RecentActivityHeader: React.FC<RecentActivityHeaderProps> = ({ filt
 
   return (
     <>
-      <NFTCardHeader title={t('nft.recentActivity')}>
+      <NFTCardHeader title="Last activity">
         {!isDesktop && (
           <Button size="large" noStyle type="text" icon={<FilterIcon />} onClick={() => setModalVisible(true)} />
         )}

@@ -1,15 +1,16 @@
-import { ActivityStatusType } from '@app/interfaces/interfaces';
+import {ActivityStatusType, TransactionType} from '@app/interfaces/interfaces';
 
 export interface Activity {
   image: string;
   title: string;
   status: ActivityStatusType;
+  transactionType?: TransactionType;
   date: number;
   owner: string;
 }
 
 export interface UserActivity extends Omit<Activity, 'owner'> {
-  usd_value: number;
+  target: string;
 }
 
 export interface ActionInfo {
@@ -27,42 +28,6 @@ export interface ActionInfo {
   bidBufferBps: bigint;
 }
 
-export const getUserActivities = (): Promise<UserActivity[]> => {
-  return new Promise((res) => {
-    setTimeout(() => {
-      res([
-        {
-          image: process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/unsplash_t1PQ4fYJu7M_ueosw4.webp',
-          title: 'Cubic#1',
-          status: 'sold',
-          date: Date.now() - 1000 * 60 * 60 * 24 * 5,
-          usd_value: 240,
-        },
-        {
-          image: process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/unsplash_1rBg5YSi00c_ctycjc.webp',
-          title: 'Ancient Nature',
-          status: 'added',
-          date: Date.now() - 1000 * 60 * 60 * 24 * 22,
-          usd_value: 1360,
-        },
-        {
-          image: process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/unsplash_t55GeRpETn0_s8myd3.webp',
-          title: 'Art of Mind',
-          status: 'booked',
-          date: Date.now() - 1000 * 60 * 60 * 24 * 156,
-          usd_value: 1895,
-        },
-        {
-          image: process.env.REACT_APP_ASSETS_BUCKET + '/lightence-activity/unsplash_geJHvrH-CgA_n6mmkv.webp',
-          title: 'CryptoBox',
-          status: 'sold',
-          date: Date.now() - 1000 * 60 * 60 * 24 * 31,
-          usd_value: 3920,
-        },
-      ]);
-    }, 0);
-  });
-};
 
 export const getActivities = (): Promise<Activity[]> => {
   return new Promise((res) => {

@@ -431,7 +431,7 @@ export const Balance: React.FC = () => {
 
             <Col span={24}>
               <S.TitleText level={2}>Pay transaction fee as:</S.TitleText>
-              <Switch checkedChildren="BIC" unCheckedChildren="BNB" defaultChecked={false} onClick={
+              <Switch checkedChildren="BIC" unCheckedChildren="BNB" defaultChecked={true} onClick={
                 (checked) => {
                   dispatch(setIsPayAsToken(checked));
                 }

@@ -16,6 +16,8 @@ export const RecentActivity: React.FC = () => {
   const [filteredActivity, setFilteredActivity] = useState<Activity[]>([]);
   const [hasMore] = useState(true);
 
+  const [bicTransfer, setBicTransfer] = useState<Activity[]>([]);
+
   const [filters, setFilters] = useState<RecentActivityFilterState>({
     status: [],
   });
