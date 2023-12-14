@@ -5,7 +5,7 @@ import { Dates } from '@app/constants/Dates';
 import { Activity } from '@app/api/activity.api';
 import * as S from './RecentActivityItem.styles';
 
-export const RecentActivityItem: React.FC<Activity> = ({ image, title, date, status, owner }) => {
+export const RecentActivityItem: React.FC<Activity> = ({ image, title, date, status, owner, amount }) => {
   const { t } = useTranslation();
 
   const currentActivity = useMemo(() => activityStatuses.find((dbStatus) => dbStatus.name === status), [status]);
@@ -25,6 +25,9 @@ export const RecentActivityItem: React.FC<Activity> = ({ image, title, date, sta
               <S.IconWrapper>{currentActivity?.icon}</S.IconWrapper>
             </S.TitleWrapper>
 
+            <S.Text>
+              Amount: {amount}
+            </S.Text>
             <S.Text>
               {t(currentActivity?.title || '')} {t('nft.by')} {owner}
             </S.Text>

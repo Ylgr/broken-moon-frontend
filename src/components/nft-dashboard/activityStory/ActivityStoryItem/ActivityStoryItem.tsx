@@ -9,7 +9,7 @@ import * as S from './ActivityStoryItem.styles';
 export const ActivityStoryItem: React.FC<UserActivity> = ({ image, title, status, date, target }) => {
   const { t } = useTranslation();
 
-  const currentStatus = activityStatuses.find((configStatus) => configStatus.name === status);
+  // const currentStatus = activityStatuses.find((configStatus) => configStatus.name === status);
 
   return (
     <Row gutter={[20, 20]} wrap={false} align="middle">
@@ -26,7 +26,7 @@ export const ActivityStoryItem: React.FC<UserActivity> = ({ image, title, status
               </Col>
 
               <Col span={24}>
-                <S.Status $color={currentStatus?.color || 'primary'}>{t(currentStatus?.title || '')}</S.Status>
+                {/*<S.Status $color={currentStatus?.color || 'primary'}>{t(currentStatus?.title || '')}</S.Status>*/}
               </Col>
             </Row>
           </Col>

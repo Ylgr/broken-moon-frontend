@@ -28,6 +28,5 @@ export type TwoFactorAuthOption = 'email' | 'phone';
 
 export type CurrencyType = 'USD' | 'ETH' | 'BTC' | 'BM' | 'BNB';
 
-export type ActivityStatusType = 'sold' | 'booked' | 'added';
 
 export type TransactionType = 'transfer bic' | 'transfer nft' | 'bid'

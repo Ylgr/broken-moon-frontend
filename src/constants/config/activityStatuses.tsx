@@ -19,19 +19,19 @@ interface ActivityStatusItem {
 export const activityStatuses: ActivityStatusItem[] = [
   {
     name: 'bid',
-    title: 'nft.status.added',
+    title: 'bid',
     color: 'warning',
     icon: <MoneyCollectOutlined />,
   },
   {
     name: 'transfer nft',
-    title: 'nft.status.booked',
+    title: 'transfer nft',
     color: 'secondary',
     icon: <RocketOutlined />,
   },
   {
     name: 'transfer bic',
-    title: 'Transfer',
+    title: 'transfer bic',
     color: 'success',
     icon: <SendOutlined />,
   }
