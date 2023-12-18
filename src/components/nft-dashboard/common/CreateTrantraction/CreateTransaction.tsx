@@ -1,10 +1,9 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {ethers} from "ethers";
 import {useAppDispatch, useAppSelector} from "@app/hooks/reduxHooks";
 import {Modal} from "@app/components/common/Modal/Modal";
 import {Input} from "@app/components/common/inputs/Input/Input";
 import {Checkbox} from "antd";
-// import {setLocalWallet} from "@app/store/slices/walletSlice";
 import {
     bicAccountFactory,
     bicAccountInterface, bmToken,
@@ -18,7 +17,7 @@ import {Badge} from "@app/components/common/Badge/Badge";
 import {Avatar} from "@app/components/common/Avatar/Avatar";
 import {Button} from "@app/components/common/buttons/Button/Button";
 import {Table} from "@app/components/common/Table/Table";
-
+import {sendTransaction} from "@app/api/sendTransaction.api";
 export const CreateTransaction: React.FC = () => {
     const wallet = useAppSelector((state) => state.wallet);
     const [isUnlockWalletModalVisible, setIsUnlockWalletModalVisible] = useState<boolean>(true);
@@ -30,8 +29,6 @@ export const CreateTransaction: React.FC = () => {
     const [txs, setTxs] = useState<any>([]);
     console.log('wallet: ', wallet)
     const dispatch = useAppDispatch();
-    const executeWallet = (new ethers.Wallet(process.env.REACT_APP_PRIVATE_KEY  || 'f45791796f5c42fca32bfe860015b6334e430c98fab408b63f9788064a45a1b5')).connect(provider);
-    // const executeWallet = (new ethers.Wallet(process.env.REACT_APP_PRIVATE_KEY as string)).connect(provider);
     const [isCreatedWallet, setIsCreatedWallet] = useState<boolean>(false);
 
     const paymasterAddress = '0xCd3E645946d44F1A165C630182b9734C14A66c17'
@@ -151,16 +148,14 @@ export const CreateTransaction: React.FC = () => {
                     }
                     console.log('ops: ', ops)
                     const encodedOps = entryPoint.interface.encodeFunctionData("handleOps", [ops, beneficiary]);
-                    console.log('encodedOps: ', encodedOps)
-                    const transaction = await executeWallet.sendTransaction({
-                        to: entryPoint.address,
-                        data: encodedOps,
-                        // gasLimit: 2000000,
-                        gasLimit: 20000000,
-                        gasPrice: 5000000000,
-                    });
                     try {
-                        const receipt = await transaction.wait();
+                        const receipt = await sendTransaction({
+                            to: entryPoint.address,
+                            data: encodedOps,
+                            // gasLimit: 2000000,
+                            gasLimit: 20000000,
+                            gasPrice: 5000000000,
+                        });
                         setTxs([...txs, receipt.transactionHash])
                         setIsCreatedWallet(false);
                     } catch (e) {
