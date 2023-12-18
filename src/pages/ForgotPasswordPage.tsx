@@ -8,7 +8,7 @@ const ForgotPasswordPage: React.FC = () => {
 
   return (
     <>
-      <PageTitle>{t('common.forgotPass')}</PageTitle>
+      <PageTitle>Test account list</PageTitle>
       <ForgotPasswordForm />
     </>
   );

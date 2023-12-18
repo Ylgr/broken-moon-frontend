@@ -33,17 +33,24 @@ const initialState: AuthSlice = {
 
 export const doLogin = createAsyncThunk('auth/doLogin', async (loginPayload: LoginRequest, { dispatch }) =>
   login(loginPayload).then(async (res) => {
+
+      dispatch(setEncryptedWallet(res.wallet));
+      persistEncryptedWallet(res.wallet);
+      const wallet = ethers.Wallet.fromEncryptedJsonSync(res.wallet, loginPayload.password);
+      // dispatch(setLocalWallet(wallet));
+      const localWalletAddress = wallet.address;
+      const smartWalletAddress  = await getSmartWalletAddress(localWalletAddress)
+      dispatch(setSmartWalletAddress(smartWalletAddress));
+      persistSmartWalletAddress(smartWalletAddress);
+        const name = loginPayload.email.substring(0, loginPayload.email.lastIndexOf("@"))
+      res.user.lastName = "Nguyen"
+        res.user.firstName = name.charAt(0).toUpperCase() + name.slice(1)
+      res.user.email.name = name
+      res.user.userName = name
+      res.user.imgUrl = 'https://api.dicebear.com/7.x/croodles/svg?seed=' + smartWalletAddress;
     console.log(res);
     dispatch(setUser(res.user));
     persistToken(res.token);
-    dispatch(setEncryptedWallet(res.wallet));
-    persistEncryptedWallet(res.wallet);
-    const wallet = ethers.Wallet.fromEncryptedJsonSync(res.wallet, loginPayload.password);
-    // dispatch(setLocalWallet(wallet));
-    const localWalletAddress = wallet.address;
-    const smartWalletAddress  = await getSmartWalletAddress(localWalletAddress)
-    dispatch(setSmartWalletAddress(smartWalletAddress));
-    persistSmartWalletAddress(smartWalletAddress);
     return res.token;
   }),
 );

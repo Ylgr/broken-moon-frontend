@@ -42,20 +42,15 @@ export const ForgotPasswordForm: React.FC = () => {
           <Auth.BackIcon />
           {t('common.back')}
         </Auth.BackWrapper>
-        <Auth.FormTitle>{t('common.resetPassword')}</Auth.FormTitle>
-        <S.Description>{t('forgotPassword.description')}</S.Description>
-        <Auth.FormItem
-          name="email"
-          label={t('common.email')}
-          rules={[{ required: true, message: t('common.emailError') }]}
-        >
-          <Auth.FormInput placeholder={t('common.email')} />
-        </Auth.FormItem>
-        <BaseForm.Item noStyle>
-          <S.SubmitButton type="primary" htmlType="submit" loading={isLoading}>
-            {t('forgotPassword.sendInstructions')}
-          </S.SubmitButton>
-        </BaseForm.Item>
+        <Auth.FormTitle>Existed account:</Auth.FormTitle>
+        <S.Description>Account (email - password (and wallet password)):</S.Description>
+        <p>test@gmail.com - test</p>
+        <p>account@gmail.com - account</p>
+        <p>alice@gmail.com - alice</p>
+        <p>bob@gmail.com - bob</p>
+        <p>charlie@gmail.com - charlie</p>
+        <p>dave@gmail.com - dave</p>
+        <p>eve@gmail.com - eve</p>
       </BaseForm>
     </Auth.FormWrapper>
   );

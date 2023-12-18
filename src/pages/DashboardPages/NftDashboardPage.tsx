@@ -43,9 +43,9 @@ const MedicalDashboardPage: React.FC = () => {
           <Balance />
         </div>
         <S.Space />
-        <div id="total-earning">
-          <TotalEarning />
-        </div>
+        {/*<div id="total-earning">*/}
+        {/*  <TotalEarning />*/}
+        {/*</div>*/}
         <S.Space />
         <S.ScrollWrapper id="activity-story">
           <ActivityStory />

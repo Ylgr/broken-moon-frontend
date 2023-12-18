@@ -16,8 +16,8 @@ interface LoginFormData {
 }
 
 export const initValues: LoginFormData = {
-  email: 'hello@altence.com',
-  password: 'some-test-pass',
+  email: 'test@gmail.com',
+  password: 'test',
 };
 
 export const LoginForm: React.FC = () => {
@@ -70,7 +70,8 @@ export const LoginForm: React.FC = () => {
             </Auth.FormCheckbox>
           </BaseForm.Item>
           <Link to="/auth/forgot-password">
-            <S.ForgotPasswordText>{t('common.forgotPass')}</S.ForgotPasswordText>
+            {/*<S.ForgotPasswordText>{t('common.forgotPass')}</S.ForgotPasswordText>*/}
+            <S.ForgotPasswordText>Test accounts</S.ForgotPasswordText>
           </Link>
         </Auth.ActionsWrapper>
         <BaseForm.Item noStyle>
@@ -78,30 +79,30 @@ export const LoginForm: React.FC = () => {
             {t('common.login')}
           </Auth.SubmitButton>
         </BaseForm.Item>
-        <BaseForm.Item noStyle>
-          <Auth.SocialButton type="default" htmlType="submit">
-            <Auth.SocialIconWrapper>
-              <GoogleIcon />
-            </Auth.SocialIconWrapper>
-            {t('login.googleLink')}
-          </Auth.SocialButton>
-        </BaseForm.Item>
-        <BaseForm.Item noStyle>
-          <Auth.SocialButton type="default" htmlType="submit">
-            <Auth.SocialIconWrapper>
-              <FacebookIcon />
-            </Auth.SocialIconWrapper>
-            {t('login.facebookLink')}
-          </Auth.SocialButton>
-        </BaseForm.Item>
-        <Auth.FooterWrapper>
-          <Auth.Text>
-            {t('login.noAccount')}{' '}
-            <Link to="/auth/sign-up">
-              <Auth.LinkText>{t('common.here')}</Auth.LinkText>
-            </Link>
-          </Auth.Text>
-        </Auth.FooterWrapper>
+        {/*<BaseForm.Item noStyle>*/}
+        {/*  <Auth.SocialButton type="default" htmlType="submit">*/}
+        {/*    <Auth.SocialIconWrapper>*/}
+        {/*      <GoogleIcon />*/}
+        {/*    </Auth.SocialIconWrapper>*/}
+        {/*    {t('login.googleLink')}*/}
+        {/*  </Auth.SocialButton>*/}
+        {/*</BaseForm.Item>*/}
+        {/*<BaseForm.Item noStyle>*/}
+        {/*  <Auth.SocialButton type="default" htmlType="submit">*/}
+        {/*    <Auth.SocialIconWrapper>*/}
+        {/*      <FacebookIcon />*/}
+        {/*    </Auth.SocialIconWrapper>*/}
+        {/*    {t('login.facebookLink')}*/}
+        {/*  </Auth.SocialButton>*/}
+        {/*</BaseForm.Item>*/}
+        {/*<Auth.FooterWrapper>*/}
+        {/*  <Auth.Text>*/}
+        {/*    {t('login.noAccount')}{' '}*/}
+        {/*    <Link to="/auth/sign-up">*/}
+        {/*      <Auth.LinkText>{t('common.here')}</Auth.LinkText>*/}
+        {/*    </Link>*/}
+        {/*  </Auth.Text>*/}
+        {/*</Auth.FooterWrapper>*/}
       </BaseForm>
     </Auth.FormWrapper>
   );
