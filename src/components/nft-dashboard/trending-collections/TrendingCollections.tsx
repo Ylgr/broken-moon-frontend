@@ -53,6 +53,8 @@ export const TrendingCollections: React.FC = () => {
 
                 });
           });
+      }).catch((err: Error) => {
+          console.log('failed to get auctions: ', err.message);
       })
   }, []);
 

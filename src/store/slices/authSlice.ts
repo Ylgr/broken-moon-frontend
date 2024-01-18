@@ -33,13 +33,16 @@ const initialState: AuthSlice = {
 
 export const doLogin = createAsyncThunk('auth/doLogin', async (loginPayload: LoginRequest, { dispatch }) =>
   login(loginPayload).then(async (res) => {
-
+      console.log('doLogin: ')
       dispatch(setEncryptedWallet(res.wallet));
       persistEncryptedWallet(res.wallet);
       const wallet = ethers.Wallet.fromEncryptedJsonSync(res.wallet, loginPayload.password);
       // dispatch(setLocalWallet(wallet));
       const localWalletAddress = wallet.address;
+      console.log('localWalletAddress: ', localWalletAddress)
       const smartWalletAddress  = await getSmartWalletAddress(localWalletAddress)
+      console.log('smartWalletAddress: ', smartWalletAddress)
+
       dispatch(setSmartWalletAddress(smartWalletAddress));
       persistSmartWalletAddress(smartWalletAddress);
         const name = loginPayload.email.substring(0, loginPayload.email.lastIndexOf("@"))

@@ -72,35 +72,39 @@ export const Balance: React.FC = () => {
     console.log('smartWalletAddress', smartWalletAddress);
     smartWalletAddress && getTokenBalance(smartWalletAddress).then((balance) => {
     setBalance(balance);
-    const eventNamespaceNftUrl = "https://api-testnet.bscscan.com/api?module=logs&action=getLogs&fromBlock=0&toBlock=lastest&address=0x7E38c6E84cB75bF5c7475E570ed21F5Ab64Be407&topic0=0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62&topic0_2_opr=and&topic2=0x0000000000000000000000000000000000000000000000000000000000000000&apikey=E8AJ7W87ZG8A6TU46Q4K1ICFU2GK6YMKYR"
-    axios.get(eventNamespaceNftUrl).then(async (response) => {
-      if(response.data) {
-        const ids = response.data.result.map((e: { data: string; }) => e.data.substring(0,66))
-        const nftData = []
-        for(const id of ids) {
-          const name = ethers.utils._toEscapedUtf8String(
-              await nameWrapper.names(id)
-          )
-          const removePrefixName = name.substring(7, name.length)
-          const startOfSuffix = removePrefixName.search(/[&\/\\#,+()$~%.'":*?<>{}]/g)
-          nftData.push({
-            id: id,
-            owner: await nameWrapper.ownerOf(id),
-            name: removePrefixName.substring(0, startOfSuffix),
-          })
-        }
-        setNamespaceData(nftData);
-        setOwnNamespaceData(nftData.filter(e => e.owner === smartWalletAddress))
-      }
-    });
-      freeToMintNft.totalSupply().then((totalSupply: BigInt) => {
-        setCurrentTotalSupplyFreeNft(parseInt(totalSupply.toString()))
-      });
-      getNft(freeToMintNft.address).then((freeNft) => {
-        getNft('0x5e5aba60b38b8D54Ce37c83dAc8a0F021bE367A9').then((collectionNft) => {
-          setOwnNfts([...freeNft, ...collectionNft])
-        })
-      })
+    // const eventNamespaceNftUrl = "https://api-testnet.bscscan.com/api?module=logs&action=getLogs&fromBlock=0&toBlock=lastest&address=0x7E38c6E84cB75bF5c7475E570ed21F5Ab64Be407&topic0=0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62&topic0_2_opr=and&topic2=0x0000000000000000000000000000000000000000000000000000000000000000&apikey=E8AJ7W87ZG8A6TU46Q4K1ICFU2GK6YMKYR"
+    // axios.get(eventNamespaceNftUrl).then(async (response) => {
+    //   if(response.data) {
+    //     const ids = response.data.result.map((e: { data: string; }) => e.data.substring(0,66))
+    //     const nftData = []
+    //     for(const id of ids) {
+    //       const name = ethers.utils._toEscapedUtf8String(
+    //           await nameWrapper.names(id)
+    //       )
+    //       const removePrefixName = name.substring(7, name.length)
+    //       const startOfSuffix = removePrefixName.search(/[&\/\\#,+()$~%.'":*?<>{}]/g)
+    //       nftData.push({
+    //         id: id,
+    //         owner: await nameWrapper.ownerOf(id),
+    //         name: removePrefixName.substring(0, startOfSuffix),
+    //       })
+    //     }
+    //     setNamespaceData(nftData);
+    //     setOwnNamespaceData(nftData.filter(e => e.owner === smartWalletAddress))
+    //   }
+    // });
+    //   freeToMintNft.totalSupply().then((totalSupply: BigInt) => {
+    //     setCurrentTotalSupplyFreeNft(parseInt(totalSupply.toString()))
+    //   }).catch((err: Error) => {
+    //     console.log('failed to get totalSupply: ', err.message);
+    //   });
+    //   getNft(freeToMintNft.address).then((freeNft) => {
+    //     getNft('0x5e5aba60b38b8D54Ce37c83dAc8a0F021bE367A9').then((collectionNft) => {
+    //       setOwnNfts([...freeNft, ...collectionNft])
+    //     })
+    //   }).catch((err: Error) => {
+    //     console.log('failed to get nft: ', err.message);
+    //   });
   })
   }, [transactionExecuted]);
   const sliderRef = useRef<Slider>(null);

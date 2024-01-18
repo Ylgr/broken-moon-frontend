@@ -1,5 +1,5 @@
 import {BigNumber, ethers} from "ethers";
-import BicAccountFactory from "./abi/BicAccountFactory.json";
+import BicAccountFactory from "./abi/BicAccountFactory2.json";
 import BicAccount from "./abi/BicAccount.json";
 import BmToken from "./abi/BmToken.json";
 import EntryPoint from "./abi/EntryPoint.json";
@@ -8,13 +8,15 @@ import BICRegistrarController from "./abi/BICRegistrarController.json";
 import NameWrapper from "./abi/NameWrapper.json";
 import FreeToMintNft from "./abi/FreeToMintNft.json";
 import Marketplace from "./abi/Marketplace.json";
-// bsc testnet
-export const provider = new ethers.providers.JsonRpcProvider("https://data-seed-prebsc-1-s1.binance.org:8545/");
-export const bicAccountFactory = new ethers.Contract("0x0e5476a5AfD15c1e35ca4d97D220cb9f40617609", BicAccountFactory, provider);
-// export const bmToken = new ethers.Contract("0x2ef8aa35647530EE276fCBCE2E639F86D8B7F1EB", BmToken, provider);
-export const bmToken = new ethers.Contract("0x79942a7E73b3E27038D896E16157ECaac819d3AF", BmToken, provider); // BIC test AA
+import {Network, Alchemy} from "alchemy-sdk";
 
-export const entryPoint = new ethers.Contract("0x0Dea81090663911A57f1cEc9569e55FD852E5dD3", EntryPoint, provider);
+// bsc testnet
+export const provider = new ethers.providers.JsonRpcProvider("https://sepolia-rollup.arbitrum.io/rpc");
+export const bicAccountFactory = new ethers.Contract("0x4e8A55cC1985714BF9fdB6E1F246E6B92E511AA2", BicAccountFactory, provider);
+// export const bmToken = new ethers.Contract("0x2ef8aa35647530EE276fCBCE2E639F86D8B7F1EB", BmToken, provider);
+export const bmToken = new ethers.Contract("0xc6652115584BAcFeD8998Cde132FC2E14d31a4cB", BmToken, provider); // BIC test AA
+
+export const entryPoint = new ethers.Contract("0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789", EntryPoint, provider);
 
 export const bicRegistrarController = new ethers.Contract('0x25f22aa0162FD8617c1271f8dd39876df8Ea8020', BICRegistrarController, provider);
 
@@ -52,3 +54,8 @@ export const freeToMintNft = new ethers.Contract("0x0B32aD755626BFc0a88402aA25E4
 export const marketplace = new ethers.Contract("0x08232a88682EF30cd16c4085c7E8FBD70cBc65A6", Marketplace, provider);
 
 export const anyNft = (address: any) => new ethers.Contract(address, FreeToMintNft, provider);
+
+export const alchemy = new Alchemy({
+    network: Network.ARB_SEPOLIA,
+    apiKey: process.env.REACT_APP_ALCHEMY_KEY, // Replace with your Alchemy API Key.
+});

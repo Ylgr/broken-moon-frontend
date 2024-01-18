@@ -8,12 +8,14 @@ export const httpApi = axios.create({
 });
 
 httpApi.interceptors.request.use((config) => {
+  // @ts-ignore
   config.headers = { ...config.headers, Authorization: `Bearer ${readToken()}` };
 
   return config;
 });
 
 httpApi.interceptors.response.use(undefined, (error: AxiosError) => {
+  // @ts-ignore
   throw new ApiError<ApiErrorData>(error.response?.data.message || error.message, error.response?.data);
 });
 

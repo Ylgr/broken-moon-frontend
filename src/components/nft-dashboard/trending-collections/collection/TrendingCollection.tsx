@@ -71,7 +71,7 @@ export const TrendingCollection: React.FC<ActionInfo> = ({ name, auctionCreator,
             <p>End time: {dayjs.unix(parseInt(endTimestamp.toString())).format()}</p>
             <p>Current winning bid: {winningBid._bidder.substring(0, 4) + '...' + winningBid._bidder.substring(winningBid._bidder.length - 4)}</p>
             <p>Current winning bid amount: {parseInt(ethers.utils.formatEther(winningBid._bidAmount))}</p>
-            <p>Bid amount (step {parseInt(bidBufferBps.toString()) / 10_000}%): </p>
+            <p>Bid amount (step {parseInt(bidBufferBps.toString()) / 100}%): </p>
             <Input type="number" value={parseInt(ethers.utils.formatEther(bidAmount))} onChange={(event) => {
               if(event.target.value == '') {
                 setBidAmount(ethers.utils.parseEther('0').toBigInt())

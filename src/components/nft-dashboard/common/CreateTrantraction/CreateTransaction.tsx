@@ -5,6 +5,7 @@ import {Modal} from "@app/components/common/Modal/Modal";
 import {Input} from "@app/components/common/inputs/Input/Input";
 import {Checkbox} from "antd";
 import {
+    alchemy,
     bicAccountFactory,
     bicAccountInterface, bmToken,
     entryPoint,
@@ -18,6 +19,7 @@ import {Avatar} from "@app/components/common/Avatar/Avatar";
 import {Button} from "@app/components/common/buttons/Button/Button";
 import {Table} from "@app/components/common/Table/Table";
 import {sendTransaction} from "@app/api/sendTransaction.api";
+import axios from "axios";
 export const CreateTransaction: React.FC = () => {
     const wallet = useAppSelector((state) => state.wallet);
     const [isUnlockWalletModalVisible, setIsUnlockWalletModalVisible] = useState<boolean>(true);
@@ -31,9 +33,11 @@ export const CreateTransaction: React.FC = () => {
     const dispatch = useAppDispatch();
     const [isCreatedWallet, setIsCreatedWallet] = useState<boolean>(false);
 
-    const paymasterAddress = '0xCd3E645946d44F1A165C630182b9734C14A66c17'
+    const paymasterAddress = '0xc6652115584BAcFeD8998Cde132FC2E14d31a4cB'
     const beneficiary = '0xeaBcd21B75349c59a4177E10ed17FBf2955fE697'
     // const beneficiary = '0xB044d9c27e5AF0407df0FEAC0Da4bBd078C4a338'
+
+    const bundlerEndpoint = 'https://arb-sepolia.g.alchemy.com/v2/' + process.env.REACT_APP_ALCHEMY_KEY
     if(isTransactionProgress) {
         const executeOps = Object.assign([], wallet.ops);
         const opsDetails = Object.assign([], wallet.opsDetails);
@@ -94,7 +98,7 @@ export const CreateTransaction: React.FC = () => {
                     note: 'only need one time'
                 });
 
-                const initCreateAccountCallData = bicAccountFactory.interface.encodeFunctionData("createAccount", [localwallet.address as any, ethers.constants.HashZero]);
+                const initCreateAccountCallData = bicAccountFactory.interface.encodeFunctionData("createAccount", [localwallet.address as any, 0]);
                 const initCode = ethers.utils.solidityPack(
                     ["bytes", "bytes"],
                     [ethers.utils.solidityPack(["bytes"], [bicAccountFactory.address]), initCreateAccountCallData]
@@ -115,55 +119,93 @@ export const CreateTransaction: React.FC = () => {
                 visible={isTransactionModalVisible}
                 onOk={async () => {
                     let ops: any[] = [];
-                    for (const op of executeOps) {
+                    const feeData = await provider.getFeeData();
+                    for (const op of executeOps){
                         console.log('wallet.smartWalletAddress: ', wallet.smartWalletAddress)
                         const newOp = Object.assign({}, op);
                         console.log('ops.indexOf(op): ', executeOps.indexOf(op))
                         console.log(1)
-                        const index = executeOps.indexOf(op);
-                        newOp.nonce = (await entryPoint.getNonce(wallet.smartWalletAddress as any, 0 as any)).add(index);
-                        if(!newOp.paymasterAndData) {
-                            if(wallet.isPayAsToken) {
-                                newOp.paymasterAndData = paymasterAddress + bmToken.address.slice(2);
-                            } else {
-                                newOp.paymasterAndData = '0x'
-                            }
-                        }
+                        // const index = executeOps.indexOf(op);
+                        // const nonce = (await entryPoint.getNonce(wallet.smartWalletAddress as any, 0 as any)).add(index)
+                        const nonce = (await entryPoint.getNonce(wallet.smartWalletAddress as any, 0 as any))
+                        newOp.nonce = nonce._hex;
+                        // newOp.nonce = '0x0';
+                        newOp.paymasterAndData = paymasterAddress
                         console.log(2)
                         newOp.initCode = op.initCode || '0x';
                         newOp.sender = wallet.smartWalletAddress;
-                        newOp.callGasLimit = 500_000;
-                        newOp.verificationGasLimit = 500_000;
-                        newOp.preVerificationGas = 500_000;
-                        newOp.maxFeePerGas = (newOp.paymasterAndData === '0x' && isCreatedWallet && index < 3) ? 0 : 112;
-                        newOp.maxPriorityFeePerGas = 82;
-                        newOp.signature = '0x';
-                        console.log('newOp: ', newOp)
+
+                        newOp.maxFeePerGas = feeData.maxFeePerGas?._hex;
+                        // newOp.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas?._hex;
+
+                        const maxPriorityFeePerGasResult = await axios.post(bundlerEndpoint, {
+                            jsonrpc: '2.0',
+                            method: 'rundler_maxPriorityFeePerGas',
+                            params: [],
+                            id: 1,
+                        });
+                        newOp.maxPriorityFeePerGas = maxPriorityFeePerGasResult.data.result;
+                        newOp.signature = '0x0da0e8ffd79a479ff1d3abbd2259127c14d9ef8e0787632255619f380fac86a81e879b4699dadeead1bfa4e75ce6784df9eb2c6fa827a3371527d756455473ae1b';
+
+                        const estimateGas = await axios.post(bundlerEndpoint, {
+                            jsonrpc: '2.0',
+                            method: 'eth_estimateUserOperationGas',
+                            params: [
+                                newOp,
+                                entryPoint.address
+                            ],
+                            id: 1,
+                        });
+                        if(estimateGas.data.error) {
+                            newOp.callGasLimit = '0x632EA0';
+                            newOp.verificationGasLimit = '0x4C4B40';
+                            newOp.preVerificationGas = '0x632EA0';
+                        } else {
+                            console.log('estimateGas: ', estimateGas.data.result)
+                            // newOp.callGasLimit = estimateGas.data.result.callGasLimit;
+                            newOp.callGasLimit = '0x' + (BigInt(estimateGas.data.result.callGasLimit) * BigInt(125) / BigInt(100)).toString(16);
+                            newOp.verificationGasLimit = estimateGas.data.result.verificationGasLimit;
+                            newOp.preVerificationGas = '0x' + (BigInt(estimateGas.data.result.preVerificationGas) * BigInt(125) / BigInt(100)).toString(16);
+                        }
+                        // 27000000
+                        // 200045156
                         const opHash = await entryPoint.getUserOpHash(newOp as any);
                         console.log(3)
                         newOp.signature = ethers.utils.solidityPack(["bytes"], [
                             await localwallet?.signMessage(ethers.utils.arrayify(opHash))
                         ]);
+                        console.log('newOp: ', newOp)
+
+                        const sendOperationResult = await axios.post(bundlerEndpoint, {
+                            jsonrpc: '2.0',
+                            method: 'eth_sendUserOperation',
+                            params: [
+                                newOp,
+                                entryPoint.address
+                            ],
+                            id: 1,
+                        });
+
+                        console.log('sendOperationResult: ', sendOperationResult)
                         ops = [...ops, newOp];
                     }
-                    console.log('ops: ', ops)
-                    const encodedOps = entryPoint.interface.encodeFunctionData("handleOps", [ops, beneficiary]);
-                    try {
-                        const receipt = await sendTransaction({
-                            to: entryPoint.address,
-                            data: encodedOps,
-                            // gasLimit: 2000000,
-                            gasLimit: 20000000,
-                            gasPrice: 5000000000,
-                        });
-                        setTxs([...txs, receipt.transactionHash])
-                        setIsCreatedWallet(false);
-                    } catch (e) {
-                        console.log('e: ', JSON.stringify(e))
-                        alert('Transaction failed')
-                    }
-                    dispatch(setOps([]));
-                    dispatch(setTransactionExecuted(wallet.transactionExecuted + 1));
+                    // console.log('ops: ', ops)
+                    // const encodedOps = entryPoint.interface.encodeFunctionData("handleOps", [ops, beneficiary]);
+                    // try {
+                    //     const receipt = await sendTransaction({
+                    //         to: entryPoint.address,
+                    //         data: encodedOps,
+                    //         maxFeePerGas: feeData.maxFeePerGas?._hex,
+                    //         maxPriorityFeePerGas: feeData.maxPriorityFeePerGas?._hex
+                    //     });
+                    //     setTxs([...txs, receipt.transactionHash])
+                    //     setIsCreatedWallet(false);
+                    // } catch (e) {
+                    //     console.log('e: ', JSON.stringify(e))
+                    //     alert('Transaction failed')
+                    // }
+                    // dispatch(setOps([]));
+                    // dispatch(setTransactionExecuted(wallet.transactionExecuted + 1));
                 }}
                 onCancel={() => {
                     setIsTransactionModalVisible(false)
